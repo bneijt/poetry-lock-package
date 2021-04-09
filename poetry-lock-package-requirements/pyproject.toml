@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "poetry-lock-package-requirements"
 version = "0.1.0"
-description = " requirements package"
+description = "Poetry lock package generator requirements package"
 authors = [ "A. Bram Neijt <bram@neijt.nl>",]
 
 [tool.poetry.dependencies]
@@ -21,3 +21,6 @@ pytest = "==5.4.3"
 wcwidth = "==0.2.5"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+poetry-lock-package = "poetry_lock_package.app:main"
