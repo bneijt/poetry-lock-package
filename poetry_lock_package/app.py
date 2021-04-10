@@ -27,6 +27,9 @@ def lock_package_name(project_name: str) -> str:
 
 @click.command(help="Generate a poetry lock package project from a poetry project")
 def main():
+    run()
+
+def run():
     project = read_project()
     dependencies = read_lock_versions()
     project["tool"]["poetry"]["name"] = lock_package_name(

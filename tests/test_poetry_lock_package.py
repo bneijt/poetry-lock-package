@@ -1,10 +1,10 @@
-from poetry_lock_package.app import main, lock_package_name
+from poetry_lock_package.app import run, lock_package_name
 import shutil
 
 
 def test_main():
     try:
-        main()
+        run()
     finally:
         shutil.rmtree("poetry-lock-package-lock")
 
