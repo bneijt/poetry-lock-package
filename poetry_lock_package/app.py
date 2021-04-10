@@ -1,6 +1,7 @@
 import toml
 import os
 import click
+from loguru import logger
 
 
 def dependency_spec(lock_information, dependency_name):
@@ -43,11 +44,13 @@ def lock_package_name(project_name: str) -> str:
 
 
 @click.command(help="Generate a poetry lock package project from a poetry project")
-def main():
-    run()
+@click.option("--tests/--no-tests", default=True)
+def main(tests):
+    run(should_create_tests=tests)
+    logger.info("Done")
 
 
-def run():
+def run(should_create_tests: bool) -> None:
     project = read_project()
     dependencies = read_lock_versions_for(
         [k for k in project["tool"]["poetry"]["dependencies"].keys() if k != "python"]
@@ -61,10 +64,10 @@ def run():
     ).strip()
     project["tool"]["poetry"]["dependencies"] = dependencies
 
-    create_or_update(project)
+    create_or_update(project, should_create_tests)
 
 
-def create_or_update(project):
+def create_or_update(project, should_create_tests: bool):
     lock_project_path = project["tool"]["poetry"]["name"]
 
     # Create module folder
@@ -74,11 +77,13 @@ def create_or_update(project):
     )
     os.makedirs(module_path, exist_ok=True)
     module_init = os.path.join(module_path, "__init__.py")
-    create_and_write(module_init, 
-                '__version__ = "{}"\n'.format(project["tool"]["poetry"]["version"]))
+    create_and_write(
+        module_init, '__version__ = "{}"\n'.format(project["tool"]["poetry"]["version"])
+    )
 
     # Create tests folder
-    create_tests(lock_project_path)
+    if should_create_tests:
+        create_tests(lock_project_path)
 
     # Create project toml
     with open(

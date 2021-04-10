@@ -12,6 +12,7 @@ python = "^3.6"
 toml = "^0.10.2"
 click = "^7.1.2"
 importlib-metadata =  { version = "^3.10.0", python = "<3.8" }
+loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

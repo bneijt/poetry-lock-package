@@ -4,7 +4,7 @@ import shutil
 
 def test_main():
     try:
-        run()
+        run(True)
     finally:
         shutil.rmtree("poetry-lock-package-lock")
 
