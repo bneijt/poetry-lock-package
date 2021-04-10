@@ -79,7 +79,7 @@ python-versions = ">=3.6, <3.7"
 name = "importlib-metadata"
 version = "3.10.0"
 description = "Read metadata from Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -207,7 +207,7 @@ python-versions = "*"
 name = "typing-extensions"
 version = "3.7.4.3"
 description = "Backported and Experimental Type Hints for Python 3.5+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -223,7 +223,7 @@ python-versions = "*"
 name = "zipp"
 version = "3.4.1"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -234,7 +234,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "84a03b38699c4fcfcff42f5a5c3e0d43dec149f67d77d114796a4174ec59c6f8"
+content-hash = "00aa4c50ad79118b60379613d96ad873dba4383d473227fa24cd5469aace6b9c"
 
 [metadata.files]
 appdirs = [
