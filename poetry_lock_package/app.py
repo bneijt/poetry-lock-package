@@ -14,6 +14,8 @@ def dependency_spec(lock_information, dependency_name):
         attr_value = dependency_information.get(attr)
         if attr_value and attr_value != "*":
             spec[attr] = attr_value
+    if list(spec.keys()) == ["version"]:
+        return spec["version"]
     return spec
 
 
@@ -58,7 +60,6 @@ def run():
         project["tool"]["poetry"]["description"] + " lock package"
     ).strip()
     project["tool"]["poetry"]["dependencies"] = dependencies
-    del project["tool"]["poetry"]["dev-dependencies"]
 
     create_or_update(project)
 
@@ -73,29 +74,35 @@ def create_or_update(project):
     )
     os.makedirs(module_path, exist_ok=True)
     module_init = os.path.join(module_path, "__init__.py")
-    if not os.path.exists(module_init):
-        with open(module_init, "w") as module_init_file:
-            module_init_file.write(
-                '__version__ = "{}"\n'.format(project["tool"]["poetry"]["version"])
-            )
+    create_and_write(module_init, 
+                '__version__ = "{}"\n'.format(project["tool"]["poetry"]["version"]))
 
     # Create tests folder
-    tests_path = os.path.join(lock_project_path, "tests")
-    os.makedirs(tests_path, exist_ok=True)
-    tests_init = os.path.join(tests_path, "__init__.py")
-    if not os.path.exists(tests_init):
-        with open(tests_init, "w") as tests_init_file:
-            tests_init_file.write("")
-    tests_mock = os.path.join(tests_path, "test_nothing.py")
-    if not os.path.exists(tests_mock):
-        with open(tests_mock, "w") as tests_mock_file:
-            tests_mock_file.write("def test_nothing():\n    pass\n")
+    create_tests(lock_project_path)
+
     # Create project toml
     with open(
         os.path.join(lock_project_path, "pyproject.toml"), "w"
     ) as requirements_toml:
         toml.dump(project, requirements_toml)
     return
+
+
+def create_and_write(path, contents):
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as output_file:
+            output_file.write(contents)
+
+
+def create_tests(lock_project_path):
+    tests_path = os.path.join(lock_project_path, "tests")
+    tests_init_path = os.path.join(tests_path, "__init__.py")
+
+    create_and_write(tests_init_path, "")
+
+    tests_mock = os.path.join(tests_path, "test_nothing.py")
+    create_and_write(tests_mock, "def test_nothing():\n    pass\n")
 
 
 if __name__ == "__main__":
