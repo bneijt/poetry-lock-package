@@ -3,4 +3,4 @@
 .vscode
 dist
 __pycache__
-poetry-lock-package-lock/
+poetry-lock-package-lock
