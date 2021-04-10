@@ -9,7 +9,7 @@ def read_lock_versions():
         return {
             p["name"]: p["version"]
             for p in lock_toml["package"]
-            if p["category"] == "dev" and not p["optional"]
+            if p["category"] == "main" and not p["optional"]
         }
 
 
