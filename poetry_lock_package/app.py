@@ -29,6 +29,7 @@ def lock_package_name(project_name: str) -> str:
 def main():
     run()
 
+
 def run():
     project = read_project()
     dependencies = read_lock_versions()
