@@ -1,5 +1,6 @@
 import toml
 import os
+import click
 
 
 def read_lock_versions():
@@ -18,14 +19,22 @@ def read_project():
         return project_toml
 
 
+def lock_package_name(project_name: str) -> str:
+    """Determine the lock project name based on the original project name"""
+    separator = "_" if "_" in project_name else "-"
+    return project_name + separator + "lock"
+
+
+@click.command(help="Generate a poetry lock package project from a poetry project")
 def main():
     project = read_project()
     dependencies = read_lock_versions()
-    separator = "_" if "_" in project["tool"]["poetry"]["name"] else "-"
-    project["tool"]["poetry"]["name"] = (
-        project["tool"]["poetry"]["name"] + separator + "lock"
+    project["tool"]["poetry"]["name"] = lock_package_name(
+        project["tool"]["poetry"]["name"]
     )
-    project["tool"]["poetry"]["description"] += " lock package"
+    project["tool"]["poetry"]["description"] = (
+        project["tool"]["poetry"]["description"] + " lock package"
+    ).strip()
     project["tool"]["poetry"]["dependencies"] = {
         name: f"=={version}" for (name, version) in dependencies.items()
     }
@@ -45,7 +54,7 @@ def create_or_update(project):
     if not os.path.exists(module_init):
         with open(module_init, "w") as module_init_file:
             module_init_file.write(
-                "from importlib.metadata import version\n__version__ = version(__name__)"
+                '__version__ = "{}"\n'.format(project["tool"]["poetry"]["version"])
             )
     with open(
         os.path.join(lock_project_path, "pyproject.toml"), "w"

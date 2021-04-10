@@ -7,6 +7,7 @@ authors = ["Bram Neijt <bram@neijt.nl>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 toml = "^0.10.2"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

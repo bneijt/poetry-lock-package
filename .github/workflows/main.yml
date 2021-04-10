@@ -25,4 +25,4 @@ jobs:
       - name: Run tests
         run: |
           poetry run pytest
-          poetry run poetry-lock-package
+          poetry run poetry-lock-package --help
