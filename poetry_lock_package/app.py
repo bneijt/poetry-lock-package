@@ -45,7 +45,7 @@ def create_or_update(project):
     if not os.path.exists(module_init):
         with open(module_init, "w") as module_init_file:
             module_init_file.write(
-                "from importlib_metadata import version\n__version__ = version(__name__)"
+                "from importlib.metadata import version\n__version__ = version(__name__)"
             )
     with open(
         os.path.join(lock_project_path, "pyproject.toml"), "w"

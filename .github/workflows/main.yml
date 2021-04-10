@@ -1,0 +1,28 @@
+name: main
+
+on:
+  push:
+    branches: [$default-branch]
+  pull_request: {}
+
+jobs:
+  main:
+    strategy:
+      matrix:
+        python-version: [3.6, 3.9]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install poetry
+        run: pip install poetry==1.1.4 poetry-core==1.0.0
+      - name: Poetry install
+        run: poetry install
+      - name: Check formatting
+        run: poetry run black --check .
+      - name: Run tests
+        run: |
+          poetry run pytest
+          poetry run poetry-lock-package
