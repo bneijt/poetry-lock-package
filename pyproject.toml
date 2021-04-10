@@ -3,6 +3,9 @@ name = "poetry-lock-package"
 version = "0.1.0"
 description = "Poetry lock package generator"
 authors = ["Bram Neijt <bram@neijt.nl>"]
+license = "GPLv3"
+readme = "README.md"
+repository = "https://github.com/bneijt/poetry-lock-package"
 
 [tool.poetry.dependencies]
 python = "^3.9"
