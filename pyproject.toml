@@ -2,7 +2,7 @@
 name = "poetry-lock-package"
 version = "0.1.0"
 description = "Poetry lock package generator"
-authors = ["A. Bram Neijt <bram@neijt.nl>"]
+authors = ["Bram Neijt <bram@neijt.nl>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -23,9 +23,9 @@ def main():
     dependencies = read_lock_versions()
     separator = "_" if "_" in project["tool"]["poetry"]["name"] else "-"
     project["tool"]["poetry"]["name"] = (
-        project["tool"]["poetry"]["name"] + separator + "requirements"
+        project["tool"]["poetry"]["name"] + separator + "lock"
     )
-    project["tool"]["poetry"]["description"] += " requirements package"
+    project["tool"]["poetry"]["description"] += " lock package"
     project["tool"]["poetry"]["dependencies"] = {
         name: f"=={version}" for (name, version) in dependencies.items()
     }
@@ -35,9 +35,9 @@ def main():
 
 
 def create_or_update(project):
-    requirements_project_path = project["tool"]["poetry"]["name"]
+    lock_project_path = project["tool"]["poetry"]["name"]
     module_directory = os.path.join(
-        requirements_project_path,
+        lock_project_path,
         project["tool"]["poetry"]["name"].replace("-", "_"),
     )
     os.makedirs(module_directory, exist_ok=True)
@@ -48,7 +48,7 @@ def create_or_update(project):
                 "from importlib_metadata import version\n__version__ = version(__name__)"
             )
     with open(
-        os.path.join(requirements_project_path, "pyproject.toml"), "w"
+        os.path.join(lock_project_path, "pyproject.toml"), "w"
     ) as requirements_toml:
         toml.dump(project, requirements_toml)
     return
