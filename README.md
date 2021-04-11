@@ -10,6 +10,21 @@ After installation, the command `poetry-lock-package` should be run next to your
 
 Simply enter the subdirectory, build and publish the package and you have a '-lock' package that depends on all the exact versions from your lock file.
 
+
+Example worflow
+---------------
+
+Simply put, the workflow is as follows
+
+    pip install poetry poetry-lock-package
+    poetry new example-package
+    cd example-package
+    poetry add loguru
+    poetry-lock-package
+    cd example-package-lock
+    cat pyproject.toml
+    poetry install
+
 License
 -------
 GPLv3, use at your own risk.

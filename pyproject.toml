@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-lock-package"
-version = "0.1.0"
+version = "0.0.1"
 description = "Poetry lock package generator"
 authors = ["Bram Neijt <bram@neijt.nl>"]
 license = "GPLv3"
