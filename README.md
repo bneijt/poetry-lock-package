@@ -25,6 +25,17 @@ Simply put, the workflow is as follows
     cat pyproject.toml
     poetry install
 
+Contributing code
+-----------------
+
+- Open an issue
+- Create an associated PR
+- Make sure to black format the proposed change
+
+    poetry run pre-commit install
+
+- Add tests where possible
+
 License
 -------
 GPLv3, use at your own risk.
