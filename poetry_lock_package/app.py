@@ -123,7 +123,7 @@ def run(should_create_tests: bool) -> None:
         project["tool"]["poetry"]["description"] + " lock package"
     ).strip()
     project["tool"]["poetry"]["dependencies"] = dependencies
-
+    del_keys(project["tool"]["poetry"], ['scripts'])
     create_or_update(project, should_create_tests)
 
 
