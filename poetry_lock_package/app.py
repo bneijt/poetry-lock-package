@@ -6,6 +6,7 @@ from loguru import logger
 import copy
 import re
 import sys
+import subprocess
 
 
 def normalize_package_name(name: str) -> str:
@@ -95,14 +96,23 @@ def lock_package_name(project_name: str) -> str:
 
 
 @click.command(help="Generate a poetry lock package project from a poetry project")
-@click.option("--tests/--no-tests", default=True)
-def main(tests):
+@click.option(
+    "--tests/--no-tests",
+    default=True,
+    help="Create a mock tests folder in the lock project or not",
+)
+@click.option(
+    "--wheel/--no-wheel",
+    default=False,
+    help="Execute poetry build wheel in lock project",
+)
+def main(tests, wheel):
     logger.remove()
     logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
-    run(should_create_tests=tests)
+    run(should_create_tests=tests, run_poetry_build_wheel=wheel)
 
 
-def run(should_create_tests: bool) -> None:
+def run(should_create_tests: bool, run_poetry_build_wheel: bool) -> None:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
@@ -126,10 +136,13 @@ def run(should_create_tests: bool) -> None:
 
     del_keys(project["tool"]["poetry"], ["scripts"])
 
-    create_or_update(project, should_create_tests)
+    lock_project_path = create_or_update(project, should_create_tests)
+    if run_poetry_build_wheel:
+        os.chdir(lock_project_path)
+        subprocess.call(["poetry", "build", "--format", "wheel"])
 
 
-def create_or_update(project, should_create_tests: bool):
+def create_or_update(project, should_create_tests: bool) -> str:
     lock_project_path = project["tool"]["poetry"]["name"]
     logger.info(f"Writing {lock_project_path}")
 
@@ -153,7 +166,7 @@ def create_or_update(project, should_create_tests: bool):
         os.path.join(lock_project_path, "pyproject.toml"), "w"
     ) as requirements_toml:
         toml.dump(project, requirements_toml)
-    return
+    return lock_project_path
 
 
 def create_and_write(path, contents):

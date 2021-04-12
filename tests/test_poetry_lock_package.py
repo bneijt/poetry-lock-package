@@ -10,7 +10,7 @@ import toml
 
 def test_main():
     try:
-        run(True)
+        run(should_create_tests=False, run_poetry_build_wheel=False)
     finally:
         shutil.rmtree("poetry-lock-package-lock", ignore_errors=True)
 
