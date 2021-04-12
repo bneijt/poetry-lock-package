@@ -139,7 +139,7 @@ def run(should_create_tests: bool, run_poetry_build_wheel: bool) -> None:
     lock_project_path = create_or_update(project, should_create_tests)
     if run_poetry_build_wheel:
         os.chdir(lock_project_path)
-        subprocess.call(["poetry", "build", "--format", "wheel"])
+        subprocess.check_call(["poetry", "build", "--format", "wheel"])
 
 
 def create_or_update(project, should_create_tests: bool) -> str:
