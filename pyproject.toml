@@ -11,7 +11,7 @@ repository = "https://github.com/bneijt/poetry-lock-package"
 python = "^3.6.1"
 toml = "^0.10.2"
 click = "^7.1.2"
-importlib-metadata = { version = "*", python = "<3.8" }
+importlib-metadata = { version = ">=0.22", python = "<3.8" }
 loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
