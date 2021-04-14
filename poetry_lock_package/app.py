@@ -123,9 +123,9 @@ def run(should_create_tests: bool, run_poetry_build_wheel: bool) -> None:
         collect_dependencies(lock, project_root_dependencies)
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
-    dependencies[project["tool"]["poetry"]["name"]] = project["tool"]["poetry"][
-        "version"
-    ]
+    dependencies[normalize_package_name(project["tool"]["poetry"]["name"])] = project[
+        "tool"
+    ]["poetry"]["version"]
     project["tool"]["poetry"]["name"] = lock_package_name(
         project["tool"]["poetry"]["name"]
     )
