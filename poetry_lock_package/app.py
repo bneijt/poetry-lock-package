@@ -1,7 +1,7 @@
 import toml
 import os
 import click
-from typing import Dict, List
+from typing import Any, Callable, Dict, List
 from loguru import logger
 import copy
 import re
@@ -10,12 +10,12 @@ import subprocess
 
 
 def normalize_package_name(name: str) -> str:
-    # TODO probabaly somewhere in poetry-core or poetry
+    # TODO probably somewhere in poetry-core or poetry?
     # see https://www.python.org/dev/peps/pep-0426/
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def collect_dependencies(lock_toml, package_names: List[str]):
+def collect_dependencies(lock_toml, package_names: List[str]) -> Dict[str, Any]:
     def read_lock_information(name: str):
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
@@ -106,21 +106,47 @@ def lock_package_name(project_name: str) -> str:
     default=False,
     help="Execute poetry build wheel in lock project",
 )
-def main(tests, wheel):
+@click.option(
+    "--ignore",
+    help="Ignore packages that match the given regex",
+)
+def main(tests, wheel, ignore):
+
     logger.remove()
     logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
-    run(should_create_tests=tests, run_poetry_build_wheel=wheel)
+    if ignore:
+        allow_package_filter = (
+            lambda package_name: re.fullmatch(ignore, package_name) is None
+        )
+    else:
+        allow_package_filter = lambda _: True
+
+    run(
+        should_create_tests=tests,
+        run_poetry_build_wheel=wheel,
+        allow_package_filter=allow_package_filter,
+    )
 
 
-def run(should_create_tests: bool, run_poetry_build_wheel: bool) -> None:
+def run(
+    should_create_tests: bool,
+    run_poetry_build_wheel: bool,
+    allow_package_filter: Callable[[str], bool],
+) -> None:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
     project_root_dependencies = [
-        k for k in project["tool"]["poetry"]["dependencies"].keys() if k != "python"
+        k
+        for k in project["tool"]["poetry"]["dependencies"].keys()
+        if k != "python" and allow_package_filter(k)
     ]
     dependencies = clean_dependencies(
-        collect_dependencies(lock, project_root_dependencies)
+        {
+            k: v
+            for (k, v) in collect_dependencies(lock, project_root_dependencies).items()
+            if allow_package_filter(k)
+        }
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
     dependencies[normalize_package_name(project["tool"]["poetry"]["name"])] = project[
