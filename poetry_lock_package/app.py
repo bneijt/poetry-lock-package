@@ -95,29 +95,31 @@ def lock_package_name(project_name: str) -> str:
     return project_name + separator + "lock"
 
 
-@click.command(help="Generate a poetry lock package project from a poetry project")
+@click.command(
+    help="Generate a lock package Poetry project this parent Poetry project."
+)
 @click.option(
     "--tests/--no-tests",
     default=False,
     show_default=True,
-    help="Create a mock tests folder in the lock project or not",
+    help="Create a mock tests folder in the lock project or not.",
 )
 @click.option(
     "--wheel",
     is_flag=True,
-    help="Execute poetry build wheel inside lock project",
+    help="Execute poetry build wheel inside lock project.",
 )
 @click.option(
     "--parent/--no-parent",
     default=True,
     show_default=True,
-    help="Add parent project as dependency of lock package",
+    help="Add parent project as dependency of lock package.",
 )
 @click.option(
     "--ignore",
     metavar="REGEX",
     multiple=True,
-    help="Ignore packages that fully match the given re.Pattern regular expression",
+    help="Ignore packages that fully match the given re.Pattern regular expression.",
 )
 def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
 
