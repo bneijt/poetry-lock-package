@@ -61,5 +61,5 @@ def test_project_root_dependencies() -> None:
     ), "Should filter all"
 
     assert "loguru" not in project_root_dependencies(
-        project, lambda name: name == "loguru"
+        project, lambda name: name != "loguru"
     ), "Should filter package"
