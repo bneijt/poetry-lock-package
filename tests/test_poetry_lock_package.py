@@ -16,6 +16,7 @@ def test_main():
             should_create_tests=False,
             run_poetry_build_wheel=False,
             allow_package_filter=lambda _: True,
+            add_parent=True,
         )
     finally:
         shutil.rmtree("poetry-lock-package-lock", ignore_errors=True)
