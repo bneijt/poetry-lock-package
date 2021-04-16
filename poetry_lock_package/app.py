@@ -99,33 +99,43 @@ def lock_package_name(project_name: str) -> str:
 @click.option(
     "--tests/--no-tests",
     default=False,
+    show_default=True,
     help="Create a mock tests folder in the lock project or not",
 )
 @click.option(
-    "--wheel/--no-wheel",
-    default=False,
+    "--wheel",
+    is_flag=True,
     help="Execute poetry build wheel inside lock project",
+)
+@click.option(
+    "--parent/--no-parent",
+    default=True,
+    show_default=True,
+    help="Add parent project as dependency of lock package",
 )
 @click.option(
     "--ignore",
     metavar="REGEX",
+    multiple=True,
     help="Ignore packages that fully match the given re.Pattern regular expression",
 )
-def main(tests: bool, wheel: bool, ignore: str):
+def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
 
     logger.remove()
     logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
 
+    ignore_patterns = [re.compile(ignore_pattern) for ignore_pattern in ignore]
+
     def allow_package_filter(package_name: str) -> bool:
-        if ignore:
-            return re.fullmatch(ignore, package_name) is None
-        else:
-            return True
+        return all(
+            [pattern.fullmatch(package_name) is None for pattern in ignore_patterns]
+        )
 
     run(
         should_create_tests=tests,
         run_poetry_build_wheel=wheel,
         allow_package_filter=allow_package_filter,
+        add_parent=parent,
     )
 
 
@@ -143,6 +153,7 @@ def run(
     should_create_tests: bool,
     run_poetry_build_wheel: bool,
     allow_package_filter: Callable[[str], bool],
+    add_parent: bool,
 ) -> None:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
@@ -156,9 +167,10 @@ def run(
         }
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
-    dependencies[normalize_package_name(project["tool"]["poetry"]["name"])] = project[
-        "tool"
-    ]["poetry"]["version"]
+    if add_parent:
+        dependencies[
+            normalize_package_name(project["tool"]["poetry"]["name"])
+        ] = project["tool"]["poetry"]["version"]
     project["tool"]["poetry"]["name"] = lock_package_name(
         project["tool"]["poetry"]["name"]
     )
