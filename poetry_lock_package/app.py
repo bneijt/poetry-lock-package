@@ -1,7 +1,7 @@
 import toml
 import os
 import click
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, MutableMapping
 from loguru import logger
 import copy
 import re
@@ -84,7 +84,7 @@ def clean_dependencies(dependencies: Dict) -> Dict:
     return dependencies
 
 
-def read_toml(filename: str):
+def read_toml(filename: str) -> MutableMapping[str, Any]:
     with open(filename, "r") as project_file:
         return toml.load(project_file)
 
@@ -98,34 +98,45 @@ def lock_package_name(project_name: str) -> str:
 @click.command(help="Generate a poetry lock package project from a poetry project")
 @click.option(
     "--tests/--no-tests",
-    default=True,
+    default=False,
     help="Create a mock tests folder in the lock project or not",
 )
 @click.option(
     "--wheel/--no-wheel",
     default=False,
-    help="Execute poetry build wheel in lock project",
+    help="Execute poetry build wheel inside lock project",
 )
 @click.option(
     "--ignore",
-    help="Ignore packages that match the given regex",
+    metavar="REGEX",
+    help="Ignore packages that fully match the given re.Pattern regular expression",
 )
-def main(tests, wheel, ignore):
+def main(tests: bool, wheel: bool, ignore: str):
 
     logger.remove()
     logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
-    if ignore:
-        allow_package_filter = (
-            lambda package_name: re.fullmatch(ignore, package_name) is None
-        )
-    else:
-        allow_package_filter = lambda _: True
+
+    def allow_package_filter(package_name: str) -> bool:
+        if ignore:
+            return re.fullmatch(ignore, package_name) is None
+        else:
+            return True
 
     run(
         should_create_tests=tests,
         run_poetry_build_wheel=wheel,
         allow_package_filter=allow_package_filter,
     )
+
+
+def project_root_dependencies(
+    project: MutableMapping[str, Any], allow_package_filter: Callable[[str], bool]
+) -> List[str]:
+    return [
+        k
+        for k in project["tool"]["poetry"]["dependencies"].keys()
+        if k != "python" and allow_package_filter(k)
+    ]
 
 
 def run(
@@ -136,15 +147,11 @@ def run(
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
-    project_root_dependencies = [
-        k
-        for k in project["tool"]["poetry"]["dependencies"].keys()
-        if k != "python" and allow_package_filter(k)
-    ]
+    root_dependencies = project_root_dependencies(project, allow_package_filter)
     dependencies = clean_dependencies(
         {
             k: v
-            for (k, v) in collect_dependencies(lock, project_root_dependencies).items()
+            for (k, v) in collect_dependencies(lock, root_dependencies).items()
             if allow_package_filter(k)
         }
     )
@@ -160,7 +167,9 @@ def run(
     ).strip()
     project["tool"]["poetry"]["dependencies"] = dependencies
 
-    del_keys(project["tool"]["poetry"], ["scripts"])
+    del_keys(
+        project["tool"]["poetry"], ["scripts", "readme", "include", "extras", "plugins"]
+    )
 
     lock_project_path = create_or_update(project, should_create_tests)
     if run_poetry_build_wheel:
