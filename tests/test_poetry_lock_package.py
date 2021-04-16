@@ -3,6 +3,8 @@ from poetry_lock_package.app import (
     lock_package_name,
     clean_dependencies,
     collect_dependencies,
+    project_root_dependencies,
+    read_toml,
 )
 import shutil
 import toml
@@ -10,7 +12,11 @@ import toml
 
 def test_main():
     try:
-        run(should_create_tests=False, run_poetry_build_wheel=False)
+        run(
+            should_create_tests=False,
+            run_poetry_build_wheel=False,
+            allow_package_filter=lambda _: True,
+        )
     finally:
         shutil.rmtree("poetry-lock-package-lock", ignore_errors=True)
 
@@ -40,3 +46,20 @@ def test_collect_dependencies():
             "python": ">=3.5",
             "version": "1.0.3",
         }
+
+
+def test_project_root_dependencies() -> None:
+    project = read_toml("pyproject.toml")
+
+    unfiltered = project_root_dependencies(project, lambda _: True)
+
+    assert unfiltered, "Should find root dependencies"
+    assert "python" not in unfiltered, "Should ignore python"
+
+    assert (
+        project_root_dependencies(project, lambda _: False) == []
+    ), "Should filter all"
+
+    assert "loguru" not in project_root_dependencies(
+        project, lambda name: name == "loguru"
+    ), "Should filter package"
