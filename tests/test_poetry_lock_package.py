@@ -1,3 +1,4 @@
+from typing import Callable
 from poetry_lock_package.app import (
     run,
     lock_package_name,
@@ -8,6 +9,13 @@ from poetry_lock_package.app import (
 )
 import shutil
 import toml
+
+
+def always(result: bool) -> Callable[[str], bool]:
+    def impl(_: str) -> bool:
+        return result
+
+    return impl
 
 
 def test_main():
@@ -32,7 +40,7 @@ def test_collect_dependencies():
     with open("tests/resources/example1.lock", "r") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
-            collect_dependencies(lock_toml, ["atomicwrites"])
+            collect_dependencies(lock_toml, ["atomicwrites"], always(True))
         ) == {
             "atomicwrites": {
                 "python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
@@ -40,9 +48,9 @@ def test_collect_dependencies():
             }
         }
 
-        assert clean_dependencies(collect_dependencies(lock_toml, ["loguru"]))[
-            "win32-setctime"
-        ] == {
+        assert clean_dependencies(
+            collect_dependencies(lock_toml, ["loguru"], always(True))
+        )["win32-setctime"] == {
             "markers": 'sys_platform == "win32"',
             "python": ">=3.5",
             "version": "1.0.3",
@@ -52,15 +60,7 @@ def test_collect_dependencies():
 def test_project_root_dependencies() -> None:
     project = read_toml("pyproject.toml")
 
-    unfiltered = project_root_dependencies(project, lambda _: True)
+    root_deps = project_root_dependencies(project)
 
-    assert unfiltered, "Should find root dependencies"
-    assert "python" not in unfiltered, "Should ignore python"
-
-    assert (
-        project_root_dependencies(project, lambda _: False) == []
-    ), "Should filter all"
-
-    assert "loguru" not in project_root_dependencies(
-        project, lambda name: name != "loguru"
-    ), "Should filter package"
+    assert root_deps, "Should find root dependencies"
+    assert "python" not in root_deps, "Should ignore python"

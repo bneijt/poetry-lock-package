@@ -8,34 +8,61 @@ import re
 import sys
 import subprocess
 
+MAX_RECURSION_DEPTH = 1000
 
-def normalize_package_name(name: str) -> str:
+
+def normalized_package_name(name: str) -> str:
     # TODO probably somewhere in poetry-core or poetry?
     # see https://www.python.org/dev/peps/pep-0426/
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def collect_dependencies(lock_toml, package_names: List[str]) -> Dict[str, Any]:
+def warn_after(maximum_iterations: int, warning_message: str):
+    """
+    Log a warning after maximum_iterations have been all consumed
+    """
+    counter = 0
+    for counter in range(maximum_iterations + 1):
+        yield counter
+    if counter == maximum_iterations:
+        logger.warning(warning_message)
+
+
+def collect_dependencies(
+    lock_toml, package_names: List[str], allow_package_filter: Callable[[str], bool]
+) -> Dict[str, Any]:
     def read_lock_information(name: str):
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
             if locked_package["name"] == name or locked_package[
                 "name"
-            ] == normalize_package_name(name):
+            ] == normalized_package_name(name):
                 return copy.deepcopy(locked_package)
         raise KeyError(f"Could not find '{name}' in lock file")
 
-    collected = {name: read_lock_information(name) for name in package_names}
+    collected = {
+        name: read_lock_information(name)
+        for name in package_names
+        if allow_package_filter(name)
+    }
     del package_names
 
     # Walk tree
-    for _ in range(1000):
+    for _ in warn_after(
+        MAX_RECURSION_DEPTH,
+        f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}",
+    ):
         dependencies_to_lock = {}
         for _, lock_information in collected.items():
             if "dependencies" in lock_information:
                 # Bug here: we are only collecting a single marker, overwriting multiple mentions
                 dependencies_to_lock.update(lock_information["dependencies"])
                 del lock_information["dependencies"]
+
+        # Filter dependencies we want to ignore
+        dependencies_to_lock = {
+            k: v for k, v in dependencies_to_lock.items() if allow_package_filter(k)
+        }
 
         if len(dependencies_to_lock) == 0:
             break
@@ -58,7 +85,7 @@ def collect_dependencies(lock_toml, package_names: List[str]) -> Dict[str, Any]:
 
 
 def del_keys(dictionary: Dict, keys: List[str]) -> None:
-    """inplace deletion of given keys"""
+    """In-place deletion of given keys"""
     for k in keys:
         if k in dictionary:
             del dictionary[k]
@@ -141,13 +168,12 @@ def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
     )
 
 
-def project_root_dependencies(
-    project: MutableMapping[str, Any], allow_package_filter: Callable[[str], bool]
-) -> List[str]:
+def project_root_dependencies(project: MutableMapping[str, Any]) -> List[str]:
+    """
+    Package names of project dependencies described in the pyproject.toml
+    """
     return [
-        k
-        for k in project["tool"]["poetry"]["dependencies"].keys()
-        if k != "python" and allow_package_filter(k)
+        k for k in project["tool"]["poetry"]["dependencies"].keys() if k != "python"
     ]
 
 
@@ -160,18 +186,14 @@ def run(
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
-    root_dependencies = project_root_dependencies(project, allow_package_filter)
+    root_dependencies = project_root_dependencies(project)
     dependencies = clean_dependencies(
-        {
-            k: v
-            for (k, v) in collect_dependencies(lock, root_dependencies).items()
-            if allow_package_filter(k)
-        }
+        collect_dependencies(lock, root_dependencies, allow_package_filter)
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
     if add_parent:
         dependencies[
-            normalize_package_name(project["tool"]["poetry"]["name"])
+            normalized_package_name(project["tool"]["poetry"]["name"])
         ] = project["tool"]["poetry"]["version"]
     project["tool"]["poetry"]["name"] = lock_package_name(
         project["tool"]["poetry"]["name"]
