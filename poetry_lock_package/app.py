@@ -1,31 +1,23 @@
-import toml
-import os
-import click
-from typing import Any, Callable, Dict, List, MutableMapping
-from loguru import logger
 import copy
+import os
 import re
-import sys
 import subprocess
+import sys
+from typing import Any, Callable, Dict, List, MutableMapping
+
+import click
+import toml
+from loguru import logger
+
+from poetry_lock_package.util import (
+    after,
+    create_and_write,
+    del_keys,
+    normalized_package_name,
+    read_toml,
+)
 
 MAX_RECURSION_DEPTH = 1000
-
-
-def normalized_package_name(name: str) -> str:
-    # TODO probably somewhere in poetry-core or poetry?
-    # see https://www.python.org/dev/peps/pep-0426/
-    return re.sub(r"[-_.]+", "-", name).lower()
-
-
-def warn_after(maximum_iterations: int, warning_message: str):
-    """
-    Log a warning after maximum_iterations have been all consumed
-    """
-    counter = 0
-    for counter in range(maximum_iterations + 1):
-        yield counter
-    if counter == maximum_iterations:
-        logger.warning(warning_message)
 
 
 def collect_dependencies(
@@ -48,9 +40,11 @@ def collect_dependencies(
     del package_names
 
     # Walk tree
-    for _ in warn_after(
+    for _ in after(
         MAX_RECURSION_DEPTH,
-        f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}",
+        lambda: logger.warning(
+            f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}"
+        ),
     ):
         dependencies_to_lock = {}
         for _, lock_information in collected.items():
@@ -84,13 +78,6 @@ def collect_dependencies(
     return collected
 
 
-def del_keys(dictionary: Dict, keys: List[str]) -> None:
-    """In-place deletion of given keys"""
-    for k in keys:
-        if k in dictionary:
-            del dictionary[k]
-
-
 def clean_dependencies(dependencies: Dict) -> Dict:
     dependencies = copy.deepcopy(dependencies)
     for _, metadata in dependencies.items():
@@ -109,11 +96,6 @@ def clean_dependencies(dependencies: Dict) -> Dict:
         if metadata.keys() == set(["version"]):
             dependencies[name] = metadata["version"]
     return dependencies
-
-
-def read_toml(filename: str) -> MutableMapping[str, Any]:
-    with open(filename, "r") as project_file:
-        return toml.load(project_file)
 
 
 def lock_package_name(project_name: str) -> str:
@@ -240,14 +222,13 @@ def create_or_update(project, should_create_tests: bool) -> str:
     return lock_project_path
 
 
-def create_and_write(path, contents):
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as output_file:
-            output_file.write(contents)
-
-
 def create_tests(lock_project_path):
+    """
+    Create a mock tests directory
+
+    If you have a default build-test-publish CI pipeline
+    and you require tests on the lock package
+    """
     tests_path = os.path.join(lock_project_path, "tests")
     tests_init_path = os.path.join(tests_path, "__init__.py")
 
