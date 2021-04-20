@@ -130,6 +130,7 @@ def lock_package_name(project_name: str) -> str:
     multiple=True,
     help="Ignore packages that fully match the given re.Pattern regular expression.",
 )
+@click.version_option()
 def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
 
     logger.remove()
