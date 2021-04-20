@@ -1,14 +1,16 @@
+import shutil
 from typing import Callable
+
+import toml
+
 from poetry_lock_package.app import (
-    run,
-    lock_package_name,
     clean_dependencies,
     collect_dependencies,
+    lock_package_name,
     project_root_dependencies,
-    read_toml,
+    run,
 )
-import shutil
-import toml
+from poetry_lock_package.util import read_toml
 
 
 def always(result: bool) -> Callable[[str], bool]:
