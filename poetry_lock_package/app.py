@@ -42,7 +42,7 @@ def collect_dependencies(
     # Walk tree
     for _ in after(
         MAX_RECURSION_DEPTH,
-        lambda: logger.warning(
+        lambda: logger.error(
             f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}"
         ),
     ):
