@@ -1,5 +1,6 @@
 import os
 import re
+from contextlib import contextmanager
 from typing import Any, Callable, Dict, List, MutableMapping
 
 import toml
@@ -39,3 +40,13 @@ def create_and_write(path, contents):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as output_file:
             output_file.write(contents)
+
+
+@contextmanager
+def changed_directory(new_path: str):
+    old_path = os.getcwd()
+    try:
+        os.chdir(new_path)
+        yield new_path
+    finally:
+        os.chdir(old_path)

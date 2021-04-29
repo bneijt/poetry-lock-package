@@ -1,6 +1,8 @@
 import copy
+import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 from typing import Any, Callable, Dict, List, MutableMapping
@@ -11,6 +13,7 @@ from loguru import logger
 
 from poetry_lock_package.util import (
     after,
+    changed_directory,
     create_and_write,
     del_keys,
     normalized_package_name,
@@ -119,6 +122,21 @@ def lock_package_name(project_name: str) -> str:
     help="Execute poetry build wheel inside lock project.",
 )
 @click.option(
+    "--move",
+    is_flag=True,
+    help="Move poetry lock package dist/ files to local dist folder.",
+)
+@click.option(
+    "--clean",
+    is_flag=True,
+    help="Remove lock project afterwards.",
+)
+@click.option(
+    "--build",
+    is_flag=True,
+    help="Alias for --wheel --move --clean.",
+)
+@click.option(
     "--parent/--no-parent",
     default=True,
     show_default=True,
@@ -131,7 +149,15 @@ def lock_package_name(project_name: str) -> str:
     help="Ignore packages that fully match the given re.Pattern regular expression.",
 )
 @click.version_option()
-def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
+def main(
+    tests: bool,
+    wheel: bool,
+    move: bool,
+    clean: bool,
+    build: bool,
+    parent: bool,
+    ignore: List[str],
+):
 
     logger.remove()
     logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
@@ -143,9 +169,16 @@ def main(tests: bool, wheel: bool, parent: bool, ignore: List[str]):
             [pattern.fullmatch(package_name) is None for pattern in ignore_patterns]
         )
 
+    if build:
+        wheel = True
+        move = True
+        clean = True
+
     run(
         should_create_tests=tests,
         run_poetry_build_wheel=wheel,
+        move_package_after_build=move,
+        clean_up_project=clean,
         allow_package_filter=allow_package_filter,
         add_parent=parent,
     )
@@ -163,6 +196,8 @@ def project_root_dependencies(project: MutableMapping[str, Any]) -> List[str]:
 def run(
     should_create_tests: bool,
     run_poetry_build_wheel: bool,
+    move_package_after_build: bool,
+    clean_up_project: bool,
     allow_package_filter: Callable[[str], bool],
     add_parent: bool,
 ) -> None:
@@ -192,8 +227,20 @@ def run(
 
     lock_project_path = create_or_update(project, should_create_tests)
     if run_poetry_build_wheel:
-        os.chdir(lock_project_path)
-        subprocess.check_call(["poetry", "build", "--format", "wheel"])
+        with changed_directory(lock_project_path):
+            subprocess.check_call(["poetry", "build", "--format", "wheel"])
+
+    if move_package_after_build:
+        if not os.path.exists("dist"):
+            os.mkdir("dist")
+        for dist_filename in os.listdir(os.path.join(lock_project_path, "dist")):
+            shutil.move(
+                os.path.join(lock_project_path, "dist", dist_filename),
+                os.path.join("dist", dist_filename),
+            )
+
+    if clean_up_project:
+        shutil.rmtree(lock_project_path)
 
 
 def create_or_update(project, should_create_tests: bool) -> str:

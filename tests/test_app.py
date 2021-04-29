@@ -1,4 +1,4 @@
-import shutil
+import os
 from typing import Callable
 
 import toml
@@ -21,15 +21,17 @@ def always(result: bool) -> Callable[[str], bool]:
 
 
 def test_main():
-    try:
-        run(
-            should_create_tests=False,
-            run_poetry_build_wheel=False,
-            allow_package_filter=lambda _: True,
-            add_parent=True,
-        )
-    finally:
-        shutil.rmtree("poetry-lock-package-lock", ignore_errors=True)
+    run(
+        should_create_tests=False,
+        run_poetry_build_wheel=False,
+        move_package_after_build=False,
+        clean_up_project=True,
+        allow_package_filter=lambda _: True,
+        add_parent=True,
+    )
+    assert not os.path.exists(
+        "poetry-lock-package-lock"
+    ), "Should have been removed by clean"
 
 
 def test_lock_package_name():
