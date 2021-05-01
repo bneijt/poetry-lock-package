@@ -13,6 +13,7 @@ toml = "^0.10.2"
 click = "^7.1.2"
 importlib-metadata = { version = ">=0.22", python = "<3.8" }
 loguru = "^0.5.3"
+poetry = "^1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -23,6 +24,9 @@ pre-commit = "^2.12.0"
 
 [tool.poetry.scripts]
 poetry-lock-package = 'poetry_lock_package.app:main'
+
+[tool.poetry.plugins."poetry.application.plugin"]
+poetry-lock-package = "poetry_lock_package.plugin:BuildLockApplicationPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
