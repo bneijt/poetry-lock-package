@@ -1,12 +1,13 @@
 from cleo.application import Application
 from cleo.commands.command import Command
 from .lib import run
+from . import __version__
 import re
 
 
 class LockCommand(Command):
     """
-    Generate a lock package Poetry project this parent Poetry project.
+    Generate a lock package Poetry project this root Poetry project.
 
     lock
         {--wheel : Execute poetry build wheel inside lock project.}
@@ -18,9 +19,8 @@ class LockCommand(Command):
     """
 
     def handle(self):
-
         ignore_patterns = [
-            re.compile(ignore_pattern) for ignore_pattern in self.argument("ignore")
+            re.compile(ignore_pattern) for ignore_pattern in self.option("ignore")
         ]
 
         def allow_package_filter(package_name: str) -> bool:
@@ -46,8 +46,8 @@ class LockCommand(Command):
         )
 
 
-application = Application()
-application.add(LockCommand())
+application = Application(name="poetry-lock-package", version=__version__)
+application.add(LockCommand().default())
 
 
 def main():
