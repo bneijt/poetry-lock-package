@@ -10,10 +10,8 @@ repository = "https://github.com/bneijt/poetry-lock-package"
 [tool.poetry.dependencies]
 python = "^3.6.1"
 toml = "^0.10.2"
-click = "^7.1.2"
 importlib-metadata = { version = ">=0.22", python = "<3.8" }
-loguru = "^0.5.3"
-poetry = "^1.0"
+cleo = "^0.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
