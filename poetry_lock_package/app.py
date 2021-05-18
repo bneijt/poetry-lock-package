@@ -1,15 +1,12 @@
 import copy
-import glob
 import os
 import re
 import shutil
 import subprocess
-import sys
 from typing import Any, Callable, Dict, List, MutableMapping
-
-import click
+import logging
 import toml
-from loguru import logger
+import argparse
 
 from poetry_lock_package.util import (
     after,
@@ -45,7 +42,7 @@ def collect_dependencies(
     # Walk tree
     for _ in after(
         MAX_RECURSION_DEPTH,
-        lambda: logger.error(
+        lambda: logging.error(
             f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}"
         ),
     ):
@@ -107,60 +104,56 @@ def lock_package_name(project_name: str) -> str:
     return project_name + separator + "lock"
 
 
-@click.command(
-    help="Generate a lock package Poetry project this parent Poetry project."
-)
-@click.option(
-    "--tests/--no-tests",
-    default=False,
-    show_default=True,
-    help="Create a mock tests folder in the lock project or not.",
-)
-@click.option(
-    "--wheel",
-    is_flag=True,
-    help="Execute poetry build wheel inside lock project.",
-)
-@click.option(
-    "--move",
-    is_flag=True,
-    help="Move poetry lock package dist/ files to local dist folder.",
-)
-@click.option(
-    "--clean",
-    is_flag=True,
-    help="Remove lock project afterwards.",
-)
-@click.option(
-    "--build",
-    is_flag=True,
-    help="Alias for --wheel --move --clean.",
-)
-@click.option(
-    "--parent/--no-parent",
-    default=True,
-    show_default=True,
-    help="Add parent project as dependency of lock package.",
-)
-@click.option(
-    "--ignore",
-    metavar="REGEX",
-    multiple=True,
-    help="Ignore packages that fully match the given re.Pattern regular expression.",
-)
-@click.version_option()
-def main(
-    tests: bool,
-    wheel: bool,
-    move: bool,
-    clean: bool,
-    build: bool,
-    parent: bool,
-    ignore: List[str],
-):
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate a lock package Poetry project this parent Poetry project."
+    )
+    parser.add_argument(
+        "--tests",
+        help="Create a mock tests folder in the lock project or not.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--wheel",
+        help="Execute poetry build wheel inside lock project.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--move",
+        help="Move poetry lock package dist/ files to local dist folder.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--clean", help="Remove lock project afterwards.", action="store_true"
+    )
+    parser.add_argument(
+        "--build", help="Alias for --wheel --move --clean.", action="store_true"
+    )
+    parser.add_argument(
+        "--no-root",
+        help="Do not add the root/parent project as a dependency of lock package.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--ignore",
+        metavar="REGEX",
+        help="Do not add the root/parent project as a dependency of lock package.",
+        action="append",
+        default=[],
+    )
 
-    logger.remove()
-    logger.add(sys.stdout, colorize=True, format="<level>{level}</level> {message}")
+    return parser.parse_args()
+
+
+def main():
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+
+    args = parse_arguments()
+    logging.info(args)
+    wheel = args.wheel
+    move = args.move
+    clean = args.clean
+    ignore = args.ignore
 
     ignore_patterns = [re.compile(ignore_pattern) for ignore_pattern in ignore]
 
@@ -169,18 +162,18 @@ def main(
             [pattern.fullmatch(package_name) is None for pattern in ignore_patterns]
         )
 
-    if build:
+    if args.build:
         wheel = True
         move = True
         clean = True
 
     run(
-        should_create_tests=tests,
+        should_create_tests=args.tests,
         run_poetry_build_wheel=wheel,
         move_package_after_build=move,
         clean_up_project=clean,
         allow_package_filter=allow_package_filter,
-        add_parent=parent,
+        add_root=not args.no_root,
     )
 
 
@@ -199,7 +192,7 @@ def run(
     move_package_after_build: bool,
     clean_up_project: bool,
     allow_package_filter: Callable[[str], bool],
-    add_parent: bool,
+    add_root: bool,
 ) -> None:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
@@ -209,7 +202,7 @@ def run(
         collect_dependencies(lock, root_dependencies, allow_package_filter)
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
-    if add_parent:
+    if add_root:
         dependencies[
             normalized_package_name(project["tool"]["poetry"]["name"])
         ] = project["tool"]["poetry"]["version"]
@@ -245,7 +238,7 @@ def run(
 
 def create_or_update(project, should_create_tests: bool) -> str:
     lock_project_path = project["tool"]["poetry"]["name"]
-    logger.info(f"Writing {lock_project_path}")
+    logging.info(f"Writing {lock_project_path}")
 
     # Create module folder
     module_path = os.path.join(

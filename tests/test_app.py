@@ -27,7 +27,7 @@ def test_main():
         move_package_after_build=False,
         clean_up_project=True,
         allow_package_filter=lambda _: True,
-        add_parent=True,
+        add_root=True,
     )
     assert not os.path.exists(
         "poetry-lock-package-lock"
