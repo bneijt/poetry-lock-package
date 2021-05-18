@@ -149,7 +149,7 @@ def main():
     logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
     args = parse_arguments()
-    logging.info(args)
+
     wheel = args.wheel
     move = args.move
     clean = args.clean
@@ -263,7 +263,7 @@ def create_or_update(project, should_create_tests: bool) -> str:
     return lock_project_path
 
 
-def create_tests(lock_project_path):
+def create_tests(lock_project_path: str) -> None:
     """
     Create a mock tests directory
 
