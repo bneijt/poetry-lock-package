@@ -11,19 +11,44 @@ After installation, the command `poetry-lock-package` should be run next to your
 Simply enter the subdirectory, build and publish the package and you have a '-lock' package that depends on all the exact versions from your lock file.
 
 
-Example worflow
+Example workflow
 ---------------
+The example workflow below will add `poetry-lock-package` as a dev dependency, allowing `poetry run` to find the command.
 
-Simply put, the workflow is as follows
+First create a new poetry project
 
-    pip install poetry poetry-lock-package
     poetry new example-package
     cd example-package
-    poetry add loguru
-    poetry-lock-package
-    cd example-package-lock
-    cat pyproject.toml
+
+Add some dependencies, and see what we have build so far
+
+    poetry add loguru click
     poetry install
+    poetry build
+    ls dist
+
+Add `poetry-lock-package` to allow for `poetry run` to find the entry point script:
+
+    poetry add --dev poetry-lock-package
+
+Finally build the lock package and see what we have gotten
+
+    poetry run poetry-lock-package --build
+    ls -al dist
+
+You will now have two wheel files in your dist folder: one with the project code, one name `example-package-lock` which depends on the exact version of all the packages specified in your `poetry.lock` file.
+
+Using `--no-root`
+-----------------
+Default behavior is to have the lock package depend on the original package the lock was created for. If you have a private repository, this will allow you to publish both packages to the private repository and only require you to point at one package to install everything.
+
+If you want to be able to install the dependencies, but not the package itself, you can use the `--no-root` command line argument to stop `poetry-lock-package` from adding your root project to the lock package dependencies.
+
+Using `--ignore`
+----------------
+If you want to allow pip to have freedom in selecting a package, or you expect to deploy in an environment that already has the right version installed, you can opt to use `--ignore` to remove that dependency from the lock package pinned dependencies.
+
+Because `poetry-lock-package` is aware of the dependency graph, it will not only skip locking the dependency but also transitive dependencies.
 
 Contributing code
 -----------------
