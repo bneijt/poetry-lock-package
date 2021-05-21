@@ -1,5 +1,3 @@
-from typing import Counter
-
 from poetry_lock_package.util import after, normalized_package_name
 
 
@@ -22,5 +20,5 @@ def test_after():
     assert counter == 0
     list(after(0, inc_counter))
     assert counter == 0, "Still no reason to call"
-    a = list(after(1, inc_counter))
+    list(after(1, inc_counter))
     assert counter == 1, "Should be called because we reached end of list"
