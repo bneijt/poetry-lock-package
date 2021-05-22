@@ -8,10 +8,9 @@ readme = "README.md"
 repository = "https://github.com/bneijt/poetry-lock-package"
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
-toml = "^0.10.2"
+python = "~2.7 || ^3.7"
+poetry = "^1.2"
 importlib-metadata = { version = ">=0.22", python = "<3.8" }
-cleo = "^0.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -19,9 +18,6 @@ black = "^21.5b1"
 rope = "^0.18.0"
 twine = "^3.4.1"
 pre-commit = "^2.12.0"
-
-[tool.poetry.scripts]
-poetry-lock-package = 'poetry_lock_package.app:main'
 
 [tool.poetry.plugins."poetry.application.plugin"]
 poetry-lock-package = "poetry_lock_package.plugin:BuildLockApplicationPlugin"
