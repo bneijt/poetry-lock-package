@@ -1,9 +1,10 @@
 import os
 import re
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, MutableMapping
+from typing import Callable, Dict, List
 
-import toml
+from tomlkit import loads
+from tomlkit.toml_document import TOMLDocument
 
 
 def after(maximum_iterations: int, at_end_of_iteration: Callable[[], None]):
@@ -30,9 +31,9 @@ def del_keys(dictionary: Dict, keys: List[str]) -> None:
             del dictionary[k]
 
 
-def read_toml(filename: str) -> MutableMapping[str, Any]:
-    with open(filename, "r") as project_file:
-        return toml.load(project_file)
+def read_toml(filename: str) -> TOMLDocument:
+    with open(filename, "r", encoding="utf-8") as project_file:
+        return loads(project_file.read())
 
 
 def create_and_write(path, contents):

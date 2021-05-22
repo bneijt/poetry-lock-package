@@ -3,9 +3,10 @@ import os
 import shutil
 import subprocess
 from typing import Any, Callable, Dict, List, MutableMapping
-from clikit.api.io import IO
+from cleo.io.io import IO
 
-import toml
+from tomlkit.toml_document import TOMLDocument
+
 
 from poetry_lock_package.util import (
     after,
@@ -122,7 +123,7 @@ def run(
     clean_up_project: bool,
     allow_package_filter: Callable[[str], bool],
     add_root: bool,
-) -> None:
+) -> int:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
@@ -144,7 +145,8 @@ def run(
     project["tool"]["poetry"]["dependencies"] = dependencies
 
     del_keys(
-        project["tool"]["poetry"], ["scripts", "readme", "include", "extras", "plugins"]
+        project["tool"]["poetry"],
+        ["scripts", "readme", "include", "extras", "plugins", "packages"],
     )
 
     lock_project_path = create_or_update(io, project)
@@ -164,8 +166,10 @@ def run(
     if clean_up_project:
         shutil.rmtree(lock_project_path)
 
+    return 0
 
-def create_or_update(io: IO, project) -> str:
+
+def create_or_update(io: IO, project: TOMLDocument) -> str:
     lock_project_path = project["tool"]["poetry"]["name"]
     io.write_line(f"Writing {lock_project_path}")
 
@@ -182,7 +186,7 @@ def create_or_update(io: IO, project) -> str:
 
     # Create project toml
     with open(
-        os.path.join(lock_project_path, "pyproject.toml"), "w"
+        os.path.join(lock_project_path, "pyproject.toml"), "w", encoding="utf-8"
     ) as requirements_toml:
-        toml.dump(project, requirements_toml)
+        requirements_toml.write(project.as_string())
     return lock_project_path
