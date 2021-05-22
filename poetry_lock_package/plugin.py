@@ -13,17 +13,10 @@ class BuildLockCommand(Command):
         {--ignore=* : Ignore packages that fully match the given re.Pattern regular expression.}
     """
 
-    name = "build-lock"
-
     def handle(self) -> int:
-        ignore_patterns = []
-        # TODO
-        # ignore_patterns = [
-        #     re.compile(ignore_pattern) for ignore_pattern in self.option("ignore")
-        # ]
-        # TODO
-        # add_root = not self.option("no-root")
-        add_root = True
+        ignore_patterns = [
+            re.compile(ignore_pattern) for ignore_pattern in self.option("ignore")
+        ]
 
         def allow_package_filter(package_name: str) -> bool:
             return all(
@@ -32,11 +25,8 @@ class BuildLockCommand(Command):
 
         return run(
             self.io,
-            run_poetry_build_wheel=True,
-            move_package_after_build=True,
-            clean_up_project=True,
             allow_package_filter=allow_package_filter,
-            add_root=add_root,
+            add_root=not self.option("no-root"),
         )
 
 
@@ -46,4 +36,4 @@ def factory():
 
 class BuildLockApplicationPlugin(ApplicationPlugin):
     def activate(self, application):
-        application.command_loader.register_factory(BuildLockCommand.name, factory)
+        application.command_loader.register_factory("build-lock", factory)

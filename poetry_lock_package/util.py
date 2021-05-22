@@ -24,7 +24,7 @@ def normalized_package_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def del_keys(dictionary: Dict, keys: List[str]) -> None:
+def del_keys(dictionary: TOMLDocument, keys: List[str]) -> None:
     """In-place deletion of given keys"""
     for k in keys:
         if k in dictionary:

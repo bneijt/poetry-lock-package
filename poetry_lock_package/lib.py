@@ -107,7 +107,7 @@ def lock_package_name(project_name: str) -> str:
     return project_name + separator + "lock"
 
 
-def project_root_dependencies(project: MutableMapping[str, Any]) -> List[str]:
+def project_root_dependencies(project: TOMLDocument) -> List[str]:
     """
     Package names of project dependencies described in the pyproject.toml
     """
@@ -118,12 +118,13 @@ def project_root_dependencies(project: MutableMapping[str, Any]) -> List[str]:
 
 def run(
     io: IO,
-    run_poetry_build_wheel: bool,
-    move_package_after_build: bool,
-    clean_up_project: bool,
     allow_package_filter: Callable[[str], bool],
     add_root: bool,
 ) -> int:
+    run_poetry_build_wheel = True
+    move_package_after_build = True
+    clean_up_project = True
+
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
