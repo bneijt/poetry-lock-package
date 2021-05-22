@@ -1,7 +1,7 @@
 import os
 import re
 from contextlib import contextmanager
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Any
 
 from tomlkit import loads
 from tomlkit.toml_document import TOMLDocument
@@ -24,16 +24,16 @@ def normalized_package_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def del_keys(dictionary: TOMLDocument, keys: List[str]) -> None:
+def del_keys(dictionary: Dict[str, Any], keys: List[str]) -> None:
     """In-place deletion of given keys"""
     for k in keys:
         if k in dictionary:
             del dictionary[k]
 
 
-def read_toml(filename: str) -> TOMLDocument:
+def read_toml(filename: str) -> Dict[str, Any]:
     with open(filename, "r", encoding="utf-8") as project_file:
-        return loads(project_file.read())
+        return loads(project_file.read()).value
 
 
 def create_and_write(path, contents):

@@ -5,8 +5,9 @@ import subprocess
 from typing import Any, Callable, Dict, List, MutableMapping
 from cleo.io.io import IO
 
-from tomlkit.toml_document import TOMLDocument
-
+from tomlkit.toml_document import TOMLDocument, Container
+from tomlkit.items import String
+from tomlkit import dumps
 
 from poetry_lock_package.util import (
     after,
@@ -26,7 +27,7 @@ def collect_dependencies(
     package_names: List[str],
     allow_package_filter: Callable[[str], bool],
 ) -> Dict[str, Any]:
-    def read_lock_information(name: str):
+    def read_lock_information(name: str) -> Dict[str, Any]:
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
             if locked_package["name"] == name or locked_package[
@@ -71,7 +72,10 @@ def collect_dependencies(
 
         # merge dependencies (contains markers) and locks (contains versions)
         for package_name, dependency_attributes in dependencies_to_lock.items():
-            if type(dependency_attributes) == str:
+            if (
+                type(dependency_attributes) == str
+                or type(dependency_attributes) == String
+            ):
                 # If this is only a version, ignore it
                 dependency_attributes = {}
             del_keys(dependency_attributes, ["version"])
@@ -107,7 +111,7 @@ def lock_package_name(project_name: str) -> str:
     return project_name + separator + "lock"
 
 
-def project_root_dependencies(project: TOMLDocument) -> List[str]:
+def project_root_dependencies(project: Dict[str, Any]) -> List[str]:
     """
     Package names of project dependencies described in the pyproject.toml
     """
@@ -170,7 +174,7 @@ def run(
     return 0
 
 
-def create_or_update(io: IO, project: TOMLDocument) -> str:
+def create_or_update(io: IO, project: Dict[str, Any]) -> str:
     lock_project_path = project["tool"]["poetry"]["name"]
     io.write_line(f"Writing {lock_project_path}")
 
@@ -189,5 +193,5 @@ def create_or_update(io: IO, project: TOMLDocument) -> str:
     with open(
         os.path.join(lock_project_path, "pyproject.toml"), "w", encoding="utf-8"
     ) as requirements_toml:
-        requirements_toml.write(project.as_string())
+        requirements_toml.write(dumps(project))
     return lock_project_path
