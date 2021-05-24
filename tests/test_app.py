@@ -3,7 +3,7 @@ from typing import Callable
 
 import toml
 
-from poetry_lock_package.app import (
+from poetry_lock_package.lib import (
     clean_dependencies,
     collect_dependencies,
     lock_package_name,
@@ -11,6 +11,7 @@ from poetry_lock_package.app import (
     run,
 )
 from poetry_lock_package.util import read_toml
+from cleo.io.buffered_io import BufferedIO
 
 
 def always(result: bool) -> Callable[[str], bool]:
@@ -21,12 +22,10 @@ def always(result: bool) -> Callable[[str], bool]:
 
 
 def test_main():
+
     run(
-        should_create_tests=False,
-        run_poetry_build_wheel=False,
-        move_package_after_build=False,
-        clean_up_project=True,
-        allow_package_filter=lambda _: True,
+        BufferedIO(),
+        allow_package_filter=always(True),
         add_root=True,
     )
     assert not os.path.exists(
@@ -41,10 +40,11 @@ def test_lock_package_name():
 
 
 def test_collect_dependencies():
+    io = BufferedIO()
     with open("tests/resources/example1.lock", "r") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
-            collect_dependencies(lock_toml, ["atomicwrites"], always(True))
+            collect_dependencies(io, lock_toml, ["atomicwrites"], always(True))
         ) == {
             "atomicwrites": {
                 "python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
@@ -53,7 +53,7 @@ def test_collect_dependencies():
         }
 
         assert clean_dependencies(
-            collect_dependencies(lock_toml, ["loguru"], always(True))
+            collect_dependencies(io, lock_toml, ["loguru"], always(True))
         )["win32-setctime"] == {
             "markers": 'sys_platform == "win32"',
             "python": ">=3.5",
