@@ -26,9 +26,9 @@ def collect_dependencies(
     def read_lock_information(name: str):
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
-            if locked_package["name"] == name or locked_package[
-                "name"
-            ] == normalized_package_name(name):
+            if locked_package["name"] == name or normalized_package_name(
+                locked_package["name"]
+            ) == normalized_package_name(name):
                 return copy.deepcopy(locked_package)
         raise KeyError(f"Could not find '{name}' in lock file")
 
@@ -81,7 +81,9 @@ def collect_dependencies(
 def clean_dependencies(dependencies: Dict) -> Dict:
     dependencies = copy.deepcopy(dependencies)
     for _, metadata in dependencies.items():
-        del_keys(metadata, ["description", "category", "name", "extras", "source"])
+        del_keys(
+            metadata, ["description", "category", "name", "extras", "source", "develop"]
+        )
 
         if not metadata.get("optional"):
             del_keys(metadata, ["optional"])

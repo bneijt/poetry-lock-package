@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "fail"
+version = "0.1.0"
+description = ""
+authors = ["Bram Neijt <bram@neijt.nl>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+PyBluez = {git = "https://github.com/pybluez/pybluez.git", rev = "d7f36702bba2abc8ea41977b2eea56a17431ac6d"}
+
+[tool.poetry.dev-dependencies]
+poetry-lock-package = "^0.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
