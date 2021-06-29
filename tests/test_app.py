@@ -61,6 +61,21 @@ def test_collect_dependencies():
         }
 
 
+def test_pybluez_git_reference():
+    lock_toml = read_toml("tests/resources/pybluez_git.lock")
+    project_toml = read_toml("tests/resources/pybluez_git.toml")
+    root_dependencies = project_root_dependencies(project_toml)
+
+    assert clean_dependencies(
+        collect_dependencies(lock_toml, root_dependencies, always(True))
+    ) == {
+        "PyBluez": {
+            "python": ">=3.5",
+            "version": "0.30",
+        }
+    }
+
+
 def test_project_root_dependencies() -> None:
     project = read_toml("pyproject.toml")
 

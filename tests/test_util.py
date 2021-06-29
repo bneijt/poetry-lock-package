@@ -5,6 +5,7 @@ def test_normalized_package_name():
     assert normalized_package_name("a") == "a"
     assert normalized_package_name("a-b") == "a-b"
     assert normalized_package_name("a_b") == "a-b"
+    assert normalized_package_name("PyBluez") == "pybluez"
 
 
 def test_after():
