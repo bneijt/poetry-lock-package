@@ -217,7 +217,8 @@ def run(
     project["tool"]["poetry"]["dependencies"] = dependencies
 
     del_keys(
-        project["tool"]["poetry"], ["scripts", "readme", "include", "extras", "plugins"]
+        project["tool"]["poetry"],
+        ["scripts", "readme", "include", "extras", "plugins", "packages"],
     )
 
     lock_project_path = create_or_update(project, should_create_tests)
