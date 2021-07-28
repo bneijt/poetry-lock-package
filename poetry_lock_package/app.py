@@ -41,7 +41,6 @@ def collect_dependencies(
                 locked_package["name"] == name
                 and locked_package.get("source", {}).get("type") == "directory"
             ):
-                print(locked_package)
                 return False
         return True
 
