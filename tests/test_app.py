@@ -28,7 +28,7 @@ def test_main():
         clean_up_project=True,
         allow_package_filter=lambda _: True,
         add_root=True,
-        ignore_editable_dependencies=False
+        ignore_editable_dependencies=False,
     )
     assert not os.path.exists(
         "poetry-lock-package-lock"
@@ -65,12 +65,17 @@ def test_collect_dependencies():
 def test_collect_dependencies_ignore_editable():
     with open("tests/resources/editable_dependency.lock", "r") as lock_file:
         lock_toml = toml.load(lock_file)
-    assert clean_dependencies(
-        collect_dependencies(lock_toml, ["my_editable_package"], always(True), True)
-    ) == {}
+    assert (
+        clean_dependencies(
+            collect_dependencies(lock_toml, ["my_editable_package"], always(True), True)
+        )
+        == {}
+    )
 
     assert clean_dependencies(
-        collect_dependencies(lock_toml, ["my_editable_package", "atomicwrites"], always(True), True)
+        collect_dependencies(
+            lock_toml, ["my_editable_package", "atomicwrites"], always(True), True
+        )
     ) == {
         "atomicwrites": {
             "python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
