@@ -21,7 +21,9 @@ MAX_RECURSION_DEPTH = 1000
 
 
 def collect_dependencies(
-    lock_toml, package_names: List[str], allow_package_filter: Callable[[str], bool]
+    lock_toml, package_names: List[str],
+    allow_package_filter: Callable[[str], bool],
+    ignore_editable_dependencies: bool
 ) -> Dict[str, Any]:
     def read_lock_information(name: str):
         """select lock information for given dependency"""
@@ -32,10 +34,19 @@ def collect_dependencies(
                 return copy.deepcopy(locked_package)
         raise KeyError(f"Could not find '{name}' in lock file")
 
+    def editable_filter(name: str):
+        for locked_package in lock_toml["package"]:
+            if locked_package['name'] == name and \
+                    locked_package.get('source', {}).get('type') == 'directory':
+                print(locked_package)
+                return False
+        return True
+
     collected = {
         name: read_lock_information(name)
         for name in package_names
-        if allow_package_filter(name)
+        if allow_package_filter(name) and (not ignore_editable_dependencies
+                                           or editable_filter(name))
     }
     del package_names
 
@@ -139,9 +150,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--ignore",
         metavar="REGEX",
-        help="Do not add the root/parent project as a dependency of lock package.",
+        help="Do not add matched dependency as a dependency of lock package.",
         action="append",
         default=[],
+    )
+    parser.add_argument(
+        "--ignore-editable",
+        help="Do not add editable dependencies as a dependency of lock package.",
+        action="store_true"
     )
 
     return parser.parse_args()
@@ -156,6 +172,7 @@ def main():
     move = args.move
     clean = args.clean
     ignore = args.ignore
+    ignore_editable = args.ignore_editable
 
     ignore_patterns = [re.compile(ignore_pattern) for ignore_pattern in ignore]
 
@@ -176,6 +193,7 @@ def main():
         clean_up_project=clean,
         allow_package_filter=allow_package_filter,
         add_root=not args.no_root,
+        ignore_editable_dependencies=ignore_editable,
     )
 
 
@@ -195,13 +213,14 @@ def run(
     clean_up_project: bool,
     allow_package_filter: Callable[[str], bool],
     add_root: bool,
+    ignore_editable_dependencies: bool
 ) -> None:
     project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
     root_dependencies = project_root_dependencies(project)
     dependencies = clean_dependencies(
-        collect_dependencies(lock, root_dependencies, allow_package_filter)
+        collect_dependencies(lock, root_dependencies, allow_package_filter, ignore_editable_dependencies)
     )
     dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
     if add_root:

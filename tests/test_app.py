@@ -28,6 +28,7 @@ def test_main():
         clean_up_project=True,
         allow_package_filter=lambda _: True,
         add_root=True,
+        ignore_editable_dependencies=False
     )
     assert not os.path.exists(
         "poetry-lock-package-lock"
@@ -44,7 +45,7 @@ def test_collect_dependencies():
     with open("tests/resources/example1.lock", "r") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
-            collect_dependencies(lock_toml, ["atomicwrites"], always(True))
+            collect_dependencies(lock_toml, ["atomicwrites"], always(True), False)
         ) == {
             "atomicwrites": {
                 "python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
@@ -53,12 +54,29 @@ def test_collect_dependencies():
         }
 
         assert clean_dependencies(
-            collect_dependencies(lock_toml, ["loguru"], always(True))
+            collect_dependencies(lock_toml, ["loguru"], always(True), False)
         )["win32-setctime"] == {
             "markers": 'sys_platform == "win32"',
             "python": ">=3.5",
             "version": "1.0.3",
         }
+
+
+def test_collect_dependencies_ignore_editable():
+    with open("tests/resources/editable_dependency.lock", "r") as lock_file:
+        lock_toml = toml.load(lock_file)
+    assert clean_dependencies(
+        collect_dependencies(lock_toml, ["my_editable_package"], always(True), True)
+    ) == {}
+
+    assert clean_dependencies(
+        collect_dependencies(lock_toml, ["my_editable_package", "atomicwrites"], always(True), True)
+    ) == {
+        "atomicwrites": {
+            "python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+            "version": "1.4.0",
+        }
+    }
 
 
 def test_pybluez_git_reference():
@@ -67,7 +85,7 @@ def test_pybluez_git_reference():
     root_dependencies = project_root_dependencies(project_toml)
 
     assert clean_dependencies(
-        collect_dependencies(lock_toml, root_dependencies, always(True))
+        collect_dependencies(lock_toml, root_dependencies, always(True), False)
     ) == {
         "PyBluez": {
             "python": ">=3.5",
