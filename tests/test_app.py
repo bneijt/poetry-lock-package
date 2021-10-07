@@ -83,3 +83,17 @@ def test_project_root_dependencies() -> None:
 
     assert root_deps, "Should find root dependencies"
     assert "python" not in root_deps, "Should ignore python"
+
+
+def test_clean_dependencies_should_ignore_extra_via_dependency():
+    """
+    The lock contains a reference to a dependency with an extra in it, but also
+    the main package without extra reference. This should end up with the root dependency without the extra
+    on it.
+    """
+    lock_toml = read_toml("tests/resources/extras_example.lock")
+
+    dependencies = clean_dependencies(
+        collect_dependencies(lock_toml, ["boto3", "smart-open"], lambda x: True)
+    )
+    assert "markers" not in dependencies["boto3"], "Should not have any markers set"
