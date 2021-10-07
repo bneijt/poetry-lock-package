@@ -1,12 +1,13 @@
+import argparse
 import copy
+import logging
 import os
 import re
 import shutil
 import subprocess
 from typing import Any, Callable, Dict, List, MutableMapping
-import logging
+
 import toml
-import argparse
 
 from poetry_lock_package.util import (
     after,
@@ -21,7 +22,9 @@ MAX_RECURSION_DEPTH = 1000
 
 
 def collect_dependencies(
-    lock_toml, package_names: List[str], allow_package_filter: Callable[[str], bool]
+    lock_toml,
+    root_package_names: List[str],
+    allow_package_filter: Callable[[str], bool],
 ) -> Dict[str, Any]:
     def read_lock_information(name: str):
         """select lock information for given dependency"""
@@ -34,10 +37,9 @@ def collect_dependencies(
 
     collected = {
         name: read_lock_information(name)
-        for name in package_names
+        for name in root_package_names
         if allow_package_filter(name)
     }
-    del package_names
 
     # Walk tree
     for _ in after(
@@ -68,12 +70,13 @@ def collect_dependencies(
 
         # merge dependencies (contains markers) and locks (contains versions)
         for package_name, dependency_attributes in dependencies_to_lock.items():
-            if type(dependency_attributes) == str:
-                # If this is only a version, ignore it
-                dependency_attributes = {}
-            del_keys(dependency_attributes, ["version"])
-            lock_information[package_name].update(dependency_attributes)
-
+            # Root packages have their own markers, the rest inherits markers
+            if package_name not in root_package_names:
+                if type(dependency_attributes) == str:
+                    # If this is only a version, ignore it
+                    dependency_attributes = {}
+                del_keys(dependency_attributes, ["version"])
+                lock_information[package_name].update(dependency_attributes)
         collected.update(lock_information)
     return collected
 
