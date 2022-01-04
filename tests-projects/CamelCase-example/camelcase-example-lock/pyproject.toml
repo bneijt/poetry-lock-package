@@ -1,0 +1,13 @@
+[build-system]
+requires = [ "poetry-core>=1.0.0",]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "camelcase-example-lock"
+description = "lock package"
+version = "0.1.0"
+authors = [ "Your Name <you@example.com>",]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+camelcase-example = "0.1.0"
