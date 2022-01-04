@@ -222,9 +222,15 @@ def run(
                     )
                     + " lock package"
                 ).strip(),
+                "authors": parent_project["tool"]["poetry"]["authors"],
                 "dependencies": dependencies,
                 "version": parent_project["tool"]["poetry"]["version"],
-                "authors": parent_project["tool"]["poetry"]["authors"],
+                "classifiers": parent_project["tool"]["poetry"].get("classifiers"),
+                "homepage": parent_project["tool"]["poetry"].get("homepage"),
+                "keywords": parent_project["tool"]["poetry"].get("keywords"),
+                "license": parent_project["tool"]["poetry"].get("license"),
+                "maintainers": parent_project["tool"]["poetry"].get("maintainers"),
+                "repository": parent_project["tool"]["poetry"].get("repository"),
             }
         }
     }
