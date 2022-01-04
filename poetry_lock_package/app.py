@@ -199,32 +199,37 @@ def run(
     allow_package_filter: Callable[[str], bool],
     add_root: bool,
 ) -> None:
-    project = read_toml("pyproject.toml")
+    parent_project = read_toml("pyproject.toml")
     lock = read_toml("poetry.lock")
 
-    root_dependencies = project_root_dependencies(project)
+    root_dependencies = project_root_dependencies(parent_project)
     dependencies = clean_dependencies(
         collect_dependencies(lock, root_dependencies, allow_package_filter)
     )
-    dependencies["python"] = project["tool"]["poetry"]["dependencies"]["python"]
+    dependencies["python"] = parent_project["tool"]["poetry"]["dependencies"]["python"]
     if add_root:
         dependencies[
-            normalized_package_name(project["tool"]["poetry"]["name"])
-        ] = project["tool"]["poetry"]["version"]
-    project["tool"]["poetry"]["name"] = lock_package_name(
-        project["tool"]["poetry"]["name"]
-    )
-    project["tool"]["poetry"]["description"] = (
-        project["tool"]["poetry"]["description"] + " lock package"
-    ).strip()
-    project["tool"]["poetry"]["dependencies"] = dependencies
+            normalized_package_name(parent_project["tool"]["poetry"]["name"])
+        ] = parent_project["tool"]["poetry"]["version"]
 
-    del_keys(
-        project["tool"]["poetry"],
-        ["scripts", "readme", "include", "extras", "plugins", "packages"],
-    )
+    lock_project = {
+        "tool": {
+            "poetry": {
+                "name": lock_package_name(parent_project["tool"]["poetry"]["name"]),
+                "description": (
+                    parent_project["tool"]["poetry"].get(
+                        "description", parent_project["tool"]["poetry"]["name"]
+                    )
+                    + " lock package"
+                ).strip(),
+                "dependencies": dependencies,
+                "version": parent_project["tool"]["poetry"]["version"],
+                "authors": parent_project["tool"]["poetry"]["authors"],
+            }
+        }
+    }
 
-    lock_project_path = create_or_update(project, should_create_tests)
+    lock_project_path = create_or_update(lock_project, should_create_tests)
     if run_poetry_build_wheel:
         with changed_directory(lock_project_path):
             subprocess.check_call(["poetry", "build", "--format", "wheel"])
