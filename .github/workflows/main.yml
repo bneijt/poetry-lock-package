@@ -20,8 +20,10 @@ jobs:
         run: pip install poetry==1.1.4 poetry-core==1.0.0
       - name: Poetry install
         run: poetry install
-      - name: Check formatting
-        run: poetry run black --check .
+      - name: Static analysis
+        run: |
+          poetry run black --check .
+          poetry run mypy
       - name: Run tests
         run: |
           poetry run pytest tests
