@@ -142,7 +142,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--ignore",
         metavar="REGEX",
-        help="Do not add the root/parent project as a dependency of lock package.",
+        help="Omit the specified dependencies from the lock package.",
         action="append",
         default=[],
     )
