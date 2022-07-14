@@ -232,7 +232,11 @@ def run(
                 "maintainers": parent_project["tool"]["poetry"].get("maintainers"),
                 "repository": parent_project["tool"]["poetry"].get("repository"),
             }
-        }
+        },
+        "build-system": {
+            "requires": ["poetry-core>=1.0.8"],
+            "build-backend": "poetry.core.masonry.api",
+        },
     }
 
     lock_project_path = create_or_update(lock_project, should_create_tests)
