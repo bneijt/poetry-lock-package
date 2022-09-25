@@ -232,7 +232,8 @@ def run(
                 "maintainers": parent_project["tool"]["poetry"].get("maintainers"),
                 "repository": parent_project["tool"]["poetry"].get("repository"),
             }
-        }
+        },
+        "build-system": parent_project["build-system"],
     }
 
     lock_project_path = create_or_update(lock_project, should_create_tests)
