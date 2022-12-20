@@ -9,7 +9,7 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Topic :: Software Development :: Build Tools"
+    "Topic :: Software Development :: Build Tools",
 ]
 
 [tool.poetry.dependencies]
@@ -32,7 +32,13 @@ ignore_missing_imports = true
 warn_redundant_casts = true
 warn_unused_configs = true
 warn_unused_ignores = true
+strict = true
 files = "poetry_lock_package"
+exclude = "test-projects"
+
+[[tool.mypy.overrides]]
+module = []
+ignore_missing_imports = true
 
 [tool.poetry.scripts]
 poetry-lock-package = 'poetry_lock_package.app:main'
