@@ -84,10 +84,6 @@ def collect_dependencies(
 def clean_dependencies(dependencies: Dict) -> Dict:
     dependencies = copy.deepcopy(dependencies)
     for _, metadata in dependencies.items():
-        del_keys(
-            metadata, ["description", "category", "name", "extras", "source", "develop"]
-        )
-
         if not metadata.get("optional"):
             del_keys(metadata, ["optional"])
         if "python-versions" in metadata:
@@ -95,6 +91,12 @@ def clean_dependencies(dependencies: Dict) -> Dict:
             del metadata["python-versions"]
             if metadata["python"] == "*":
                 del metadata["python"]
+
+        # Drop unused metadata attributes
+        attributes_to_keep = ["version", "python", "markers", "dependencies"]
+        for attribute in list(metadata.keys()):
+            if attribute not in attributes_to_keep:
+                del metadata[attribute]
 
     # Collapse version to single string
     for name, metadata in dependencies.items():

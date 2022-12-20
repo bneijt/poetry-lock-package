@@ -61,6 +61,21 @@ def test_collect_dependencies():
         }
 
 
+def test_lock_file_v2() -> None:
+    with open("tests/resources/poetry_v2.lock", "r") as lock_file:
+        lock_toml = toml.load(lock_file)
+        assert clean_dependencies(
+            collect_dependencies(lock_toml, ["arrow"], always(True))
+        ) == {
+            "arrow": {"python": ">=3.6", "version": "1.2.3"},
+            "python-dateutil": {
+                "python": "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7",
+                "version": "2.8.2",
+            },
+            "six": {"python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*", "version": "1.16.0"},
+        }
+
+
 def test_pybluez_git_reference():
     lock_toml = read_toml("tests/resources/pybluez_git.lock")
     project_toml = read_toml("tests/resources/pybluez_git.toml")

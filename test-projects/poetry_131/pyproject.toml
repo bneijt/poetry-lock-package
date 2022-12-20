@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "poetry-131"
+version = "0.1.0"
+description = ""
+authors = ["Bram Neijt <bram@neijt.nl>"]
+readme = "README.md"
+packages = [{include = "poetry_131"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arrow = "^1.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
