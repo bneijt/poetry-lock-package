@@ -4,6 +4,7 @@ echo BUILD ALL
 for d in */; do
 (
 	set -e
+	echo "-> $d"
 	cd "$d"
 	poetry lock
 	poetry install
