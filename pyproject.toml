@@ -13,18 +13,19 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.7.0"
 toml = "^0.10.1"
 importlib-metadata = { version = ">=0.22", python = "<3.8" }
 
-[tool.poetry.dev-dependencies]
-pytest = "^5.2"
-black = "^21.5b1"
-rope = "^0.18.0"
-twine = "^3.4.1"
-pre-commit = "^2.12.0"
-mypy = "^0.930"
-types-toml = "^0.10.1"
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+black = "^22.12.0"
+rope = "^1.6.0"
+twine = "^4.0.2"
+pre-commit = "^2.20.0"
+mypy = "^0.991"
+types-toml = "^0.10.8.1"
+isort = "^5.11.3"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -49,3 +50,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
