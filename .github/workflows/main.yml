@@ -23,7 +23,7 @@ jobs:
       - name: Static analysis
         run: |
           poetry run black --check .
-          # poetry run mypy
+          poetry run mypy
       - name: Run tests
         run: |
           poetry run pytest tests

@@ -22,11 +22,11 @@ MAX_RECURSION_DEPTH = 1000
 
 
 def collect_dependencies(
-    lock_toml,
+    lock_toml: MutableMapping[str, Any],
     root_package_names: List[str],
     allow_package_filter: Callable[[str], bool],
 ) -> Dict[str, Any]:
-    def read_lock_information(name: str):
+    def read_lock_information(name: str) -> MutableMapping[str, Any]:
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
             if locked_package["name"] == name or normalized_package_name(
@@ -81,7 +81,7 @@ def collect_dependencies(
     return collected
 
 
-def clean_dependencies(dependencies: Dict) -> Dict:
+def clean_dependencies(dependencies: Dict[str, Any]) -> Dict[str, Any]:
     dependencies = copy.deepcopy(dependencies)
     for _, metadata in dependencies.items():
         if not metadata.get("optional"):
@@ -152,7 +152,7 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
     args = parse_arguments()
@@ -256,8 +256,8 @@ def run(
         shutil.rmtree(lock_project_path)
 
 
-def create_or_update(project, should_create_tests: bool) -> str:
-    lock_project_path = project["tool"]["poetry"]["name"]
+def create_or_update(project: Dict[str, Any], should_create_tests: bool) -> str:
+    lock_project_path: str = project["tool"]["poetry"]["name"]
     logging.info(f"Writing {lock_project_path}")
 
     # Create module folder

@@ -1,12 +1,14 @@
 import os
 import re
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, MutableMapping
+from typing import Any, Callable, Dict, List, MutableMapping, Iterator
 
 import toml
 
 
-def after(maximum_iterations: int, at_end_of_iteration: Callable[[], None]):
+def after(
+    maximum_iterations: int, at_end_of_iteration: Callable[[], None]
+) -> Iterator[int]:
     """
     Log a warning after maximum_iterations have been all consumed
     """
@@ -23,7 +25,7 @@ def normalized_package_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def del_keys(dictionary: Dict, keys: List[str]) -> None:
+def del_keys(dictionary: Dict[Any, Any], keys: List[str]) -> None:
     """In-place deletion of given keys"""
     for k in keys:
         if k in dictionary:
@@ -35,7 +37,7 @@ def read_toml(filename: str) -> MutableMapping[str, Any]:
         return toml.load(project_file)
 
 
-def create_and_write(path, contents):
+def create_and_write(path: str, contents: str) -> None:
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as output_file:
@@ -43,7 +45,7 @@ def create_and_write(path, contents):
 
 
 @contextmanager
-def changed_directory(new_path: str):
+def changed_directory(new_path: str) -> Iterator[str]:
     old_path = os.getcwd()
     try:
         os.chdir(new_path)
