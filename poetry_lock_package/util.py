@@ -1,7 +1,7 @@
 import os
 import re
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, MutableMapping, Iterator
+from typing import Any, Callable, Dict, Iterator, List, MutableMapping
 
 import toml
 
