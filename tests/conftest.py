@@ -85,7 +85,7 @@ def command_tester_factory(
 
 @pytest.fixture
 def poetry() -> Poetry:
-    return Factory().create_poetry("tests/resources/simply_complete")
+    return Factory().create_poetry()
 
 
 @pytest.fixture
