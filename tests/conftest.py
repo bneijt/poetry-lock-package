@@ -48,6 +48,13 @@ class CommandTesterFactory(Protocol):
 
 
 @pytest.fixture
+def env(tmp_path: Path) -> MockEnv:
+    path = tmp_path / ".venv"
+    path.mkdir(parents=True)
+    return MockEnv(path=path, is_venv=True)
+
+
+@pytest.fixture
 def command_tester_factory(
     app: PoetryTestApplication, env: MockEnv
 ) -> CommandTesterFactory:
@@ -55,8 +62,9 @@ def command_tester_factory(
         poetry: Poetry | None = None,
     ) -> CommandTester:
         app._load_plugins(NullIO())
-
-        tester = CommandTester(BuildCommand)
+        cmd = app.find("build")
+        cmd.set_env(env)
+        tester = CommandTester(cmd)
 
         # Setting the formatter from the application
         # TODO: Find a better way to do this in Cleo
@@ -77,7 +85,7 @@ def command_tester_factory(
 
 @pytest.fixture
 def poetry() -> Poetry:
-    return Factory().create_poetry("tests/resources/simply_compleet")
+    return Factory().create_poetry("tests/resources/simply_complete")
 
 
 @pytest.fixture

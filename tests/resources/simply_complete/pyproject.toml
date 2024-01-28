@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "simply-compleet"
+name = "simply-complete"
 version = "0.0.1"
 description = "Example"
 authors = ["This Is <a@example.com>"]
