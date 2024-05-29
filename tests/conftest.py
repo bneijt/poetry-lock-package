@@ -1,14 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Protocol
 
 import pytest
 
 from cleo.io.null_io import NullIO
 from cleo.testers.command_tester import CommandTester
-from poetry.console.commands.env_command import EnvCommand
-from poetry.console.commands.build import BuildCommand
-from poetry.console.commands.installer_command import InstallerCommand
 from poetry.installation import Installer
 from poetry.utils.env import MockEnv
 
@@ -19,8 +17,6 @@ from poetry.utils.env import Env
 
 from poetry.console.application import Application
 from poetry.factory import Factory
-from poetry.installation.executor import Executor
-from poetry.packages import Locker
 
 
 class PoetryTestApplication(Application):
@@ -43,8 +39,7 @@ class CommandTesterFactory(Protocol):
         installer: Installer | None = None,
         executor: Executor | None = None,
         environment: Env | None = None,
-    ) -> CommandTester:
-        ...
+    ) -> CommandTester: ...
 
 
 @pytest.fixture
@@ -64,14 +59,8 @@ def command_tester_factory(
         app._load_plugins(NullIO())
         cmd = app.find("build")
         cmd.set_env(env)
+        assert cmd, "Should have found build command"
         tester = CommandTester(cmd)
-
-        # Setting the formatter from the application
-        # TODO: Find a better way to do this in Cleo
-        app_io = app.create_io()
-        formatter = app_io.output.formatter
-        tester.io.output.set_formatter(formatter)
-        tester.io.error_output.set_formatter(formatter)
 
         if poetry:
             app._poetry = poetry
