@@ -72,11 +72,22 @@ def collect_dependencies(
         for package_name, dependency_attributes in dependencies_to_lock.items():
             # Root packages have their own markers, the rest inherits markers
             if package_name not in root_package_names:
-                if type(dependency_attributes) == str:
+                if isinstance(dependency_attributes, str):
                     # If this is only a version, ignore it
-                    dependency_attributes = {}
-                del_keys(dependency_attributes, ["version"])
-                lock_information[package_name].update(dependency_attributes)
+                    # because it is already in the lock file information
+                    continue
+                elif isinstance(dependency_attributes, list):
+                    # If we have multiple version constaints,
+                    # we ignore the markers because we already have a version
+                    # picked from the lock
+                    continue
+                elif isinstance(dependency_attributes, dict):
+                    del_keys(dependency_attributes, ["version"])
+                    lock_information[package_name].update(dependency_attributes)
+                else:
+                    logging.warning(
+                        f"Found dependency information for '{package_name}' of type {type(dependency_attributes)}, ignoring. Consider filing an issue."
+                    )
         collected.update(lock_information)
     return collected
 

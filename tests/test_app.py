@@ -112,3 +112,14 @@ def test_clean_dependencies_should_ignore_extra_via_dependency():
         collect_dependencies(lock_toml, ["boto3", "smart-open"], lambda x: True)
     )
     assert "markers" not in dependencies["boto3"], "Should not have any markers set"
+
+
+def test_issue_36_lock() -> None:
+    """If the dependency information contains more markers for different versions, we incorrectly merge the configuration"""
+    with open("tests/resources/issue_36.lock", "r") as lock_file:
+        lock_toml = toml.load(lock_file)
+        collected_deps = collect_dependencies(
+            lock_toml, ["aioboto3", "docker", "requests"], always(True)
+        )
+        cleaned_deps = clean_dependencies(collected_deps)
+        assert cleaned_deps["urllib3"]["version"] == "1.26.18"
