@@ -41,7 +41,7 @@ def test_lock_package_name():
 
 
 def test_collect_dependencies():
-    with open("tests/resources/example1.lock", "r") as lock_file:
+    with open("tests/resources/example1.lock", "r", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
             collect_dependencies(lock_toml, ["atomicwrites"], always(True))
@@ -62,7 +62,7 @@ def test_collect_dependencies():
 
 
 def test_lock_file_v2() -> None:
-    with open("tests/resources/poetry_v2.lock", "r") as lock_file:
+    with open("tests/resources/poetry_v2.lock", "r", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
             collect_dependencies(lock_toml, ["arrow"], always(True))
@@ -116,7 +116,7 @@ def test_clean_dependencies_should_ignore_extra_via_dependency():
 
 def test_issue_36_lock() -> None:
     """If the dependency information contains more markers for different versions, we incorrectly merge the configuration"""
-    with open("tests/resources/issue_36.lock", "r") as lock_file:
+    with open("tests/resources/issue_36.lock", "r", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         collected_deps = collect_dependencies(
             lock_toml, ["aioboto3", "docker", "requests"], always(True)

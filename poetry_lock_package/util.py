@@ -33,14 +33,14 @@ def del_keys(dictionary: Dict[Any, Any], keys: List[str]) -> None:
 
 
 def read_toml(filename: str) -> MutableMapping[str, Any]:
-    with open(filename, "r") as project_file:
+    with open(filename, "r", encoding="utf-8") as project_file:
         return toml.load(project_file)
 
 
 def create_and_write(path: str, contents: str) -> None:
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as output_file:
+        with open(path, "w", encoding="utf-8") as output_file:
             output_file.write(contents)
 
 

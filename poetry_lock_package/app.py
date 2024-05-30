@@ -288,7 +288,7 @@ def create_or_update(project: Dict[str, Any], should_create_tests: bool) -> str:
 
     # Create project toml
     with open(
-        os.path.join(lock_project_path, "pyproject.toml"), "w"
+        os.path.join(lock_project_path, "pyproject.toml"), "w", encoding="utf-8"
     ) as requirements_toml:
         toml.dump(project, requirements_toml)
     return lock_project_path
