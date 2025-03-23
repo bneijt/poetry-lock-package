@@ -29,9 +29,9 @@ def test_main():
         allow_package_filter=lambda _: True,
         add_root=True,
     )
-    assert not os.path.exists(
-        "poetry-lock-package-lock"
-    ), "Should have been removed by clean"
+    assert not os.path.exists("poetry-lock-package-lock"), (
+        "Should have been removed by clean"
+    )
 
 
 def test_lock_package_name():
