@@ -46,6 +46,9 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
+testpaths = [
+    "tests",
+]
 
 [tool.ruff.lint]
 extend-select = ["I"]
