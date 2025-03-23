@@ -29,9 +29,9 @@ def test_main():
         allow_package_filter=lambda _: True,
         add_root=True,
     )
-    assert not os.path.exists(
-        "poetry-lock-package-lock"
-    ), "Should have been removed by clean"
+    assert not os.path.exists("poetry-lock-package-lock"), (
+        "Should have been removed by clean"
+    )
 
 
 def test_lock_package_name():
@@ -73,6 +73,16 @@ def test_lock_file_v2() -> None:
                 "version": "2.8.2",
             },
             "six": {"python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*", "version": "1.16.0"},
+        }
+
+
+def test_lock_file_v2b() -> None:
+    with open("tests/resources/poetry_v2b.lock", "r", encoding="utf-8") as lock_file:
+        lock_toml = toml.load(lock_file)
+        assert clean_dependencies(
+            collect_dependencies(lock_toml, ["toml"], always(True))
+        ) == {
+            "toml": {"python": ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*", "version": "0.10.2"},
         }
 
 
