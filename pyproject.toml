@@ -17,9 +17,9 @@ python = "^3.9.0"
 toml = "^0.10.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.2.1"
+pytest = "^8.3.5"
 twine = "^6.1.0"
-pre-commit = "^2.20.0"
+pre-commit = "^4.2.0"
 mypy = "^1.15.0"
 types-toml = "^0.10.8.20240310"
 
@@ -46,9 +46,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["B", "E", "FA", "I", "INP", "N", "Q", "RUF", "SIM", "UP"]

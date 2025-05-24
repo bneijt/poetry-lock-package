@@ -1,7 +1,8 @@
 import os
 import re
+from collections.abc import Iterator, MutableMapping
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, List, MutableMapping
+from typing import Any, Callable
 
 import toml
 
@@ -25,15 +26,14 @@ def normalized_package_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def del_keys(dictionary: Dict[Any, Any], keys: List[str]) -> None:
+def del_keys(dictionary: dict[Any, Any], keys: list[str]) -> None:
     """In-place deletion of given keys"""
     for k in keys:
-        if k in dictionary:
-            del dictionary[k]
+        dictionary.pop(k, None)
 
 
 def read_toml(filename: str) -> MutableMapping[str, Any]:
-    with open(filename, "r", encoding="utf-8") as project_file:
+    with open(filename, encoding="utf-8") as project_file:
         return toml.load(project_file)
 
 
