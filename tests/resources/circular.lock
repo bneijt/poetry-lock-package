@@ -31,4 +31,3 @@ python-versions = ">=3.5"
 
 [package.dependencies]
 c = "*"
-

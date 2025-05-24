@@ -63,4 +63,3 @@ Contributing code
 License
 -------
 GPLv3, use at your own risk.
-
