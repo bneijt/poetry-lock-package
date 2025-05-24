@@ -5,7 +5,8 @@ import os
 import re
 import shutil
 import subprocess
-from typing import Any, Callable, Dict, List, MutableMapping
+from collections.abc import MutableMapping
+from typing import Any, Callable
 
 import toml
 
@@ -23,9 +24,9 @@ MAX_RECURSION_DEPTH = 1000
 
 def collect_dependencies(
     lock_toml: MutableMapping[str, Any],
-    root_package_names: List[str],
+    root_package_names: list[str],
     allow_package_filter: Callable[[str], bool],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     def read_lock_information(name: str) -> MutableMapping[str, Any]:
         """select lock information for given dependency"""
         for locked_package in lock_toml["package"]:
@@ -45,19 +46,23 @@ def collect_dependencies(
     for _ in after(
         MAX_RECURSION_DEPTH,
         lambda: logging.error(
-            f"Stopped looking for dependencies at a max recursion depth of {MAX_RECURSION_DEPTH}"
+            "Stopped looking for dependencies at a max recursion depth"
+            f" of {MAX_RECURSION_DEPTH}"
         ),
     ):
         dependencies_to_lock = {}
         for _, lock_information in collected.items():
             if "dependencies" in lock_information:
-                # Bug here: we are only collecting a single marker, overwriting multiple mentions
+                # Bug here: we are only collecting a single marker,
+                #  overwriting multiple mentions
                 dependencies_to_lock.update(lock_information["dependencies"])
                 del lock_information["dependencies"]
 
         # Filter dependencies we want to ignore
         dependencies_to_lock = {
-            k: v for k, v in dependencies_to_lock.items() if allow_package_filter(k)
+            k: v
+            for k, v in dependencies_to_lock.items()
+            if allow_package_filter(k) and k not in collected
         }
 
         if len(dependencies_to_lock) == 0:
@@ -65,7 +70,7 @@ def collect_dependencies(
 
         lock_information = {
             package_name: read_lock_information(package_name)
-            for package_name in dependencies_to_lock.keys()
+            for package_name in dependencies_to_lock
         }
 
         # merge dependencies (contains markers) and locks (contains versions)
@@ -86,13 +91,15 @@ def collect_dependencies(
                     lock_information[package_name].update(dependency_attributes)
                 else:
                     logging.warning(
-                        f"Found dependency information for '{package_name}' of type {type(dependency_attributes)}, ignoring. Consider filing an issue."
+                        f"Found dependency information for '{package_name}'"
+                        f" of type {type(dependency_attributes)}, ignoring."
+                        " Consider filing an issue."
                     )
         collected.update(lock_information)
     return collected
 
 
-def clean_dependencies(dependencies: Dict[str, Any]) -> Dict[str, Any]:
+def clean_dependencies(dependencies: dict[str, Any]) -> dict[str, Any]:
     dependencies = copy.deepcopy(dependencies)
     for _, metadata in dependencies.items():
         if not metadata.get("optional"):
@@ -195,13 +202,11 @@ def main() -> None:
     )
 
 
-def project_root_dependencies(project: MutableMapping[str, Any]) -> List[str]:
+def project_root_dependencies(project: MutableMapping[str, Any]) -> list[str]:
     """
     Package names of project dependencies described in the pyproject.toml
     """
-    return [
-        k for k in project["tool"]["poetry"]["dependencies"].keys() if k != "python"
-    ]
+    return [k for k in project["tool"]["poetry"]["dependencies"] if k != "python"]
 
 
 def run(
@@ -267,7 +272,7 @@ def run(
         shutil.rmtree(lock_project_path)
 
 
-def create_or_update(project: Dict[str, Any], should_create_tests: bool) -> str:
+def create_or_update(project: dict[str, Any], should_create_tests: bool) -> str:
     lock_project_path: str = project["tool"]["poetry"]["name"]
     logging.info(f"Writing {lock_project_path}")
 

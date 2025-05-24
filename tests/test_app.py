@@ -20,7 +20,7 @@ def always(result: bool) -> Callable[[str], bool]:
     return impl
 
 
-def test_main():
+def test_main() -> None:
     run(
         should_create_tests=False,
         run_poetry_build_wheel=False,
@@ -34,14 +34,14 @@ def test_main():
     )
 
 
-def test_lock_package_name():
+def test_lock_package_name() -> None:
     assert lock_package_name("a") == "a-lock"
     assert lock_package_name("a-b") == "a-b-lock"
     assert lock_package_name("a_b") == "a_b_lock"
 
 
-def test_collect_dependencies():
-    with open("tests/resources/example1.lock", "r", encoding="utf-8") as lock_file:
+def test_collect_dependencies() -> None:
+    with open("tests/resources/example1.lock", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
             collect_dependencies(lock_toml, ["atomicwrites"], always(True))
@@ -62,7 +62,7 @@ def test_collect_dependencies():
 
 
 def test_lock_file_v2() -> None:
-    with open("tests/resources/poetry_v2.lock", "r", encoding="utf-8") as lock_file:
+    with open("tests/resources/poetry_v2.lock", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
             collect_dependencies(lock_toml, ["arrow"], always(True))
@@ -77,7 +77,7 @@ def test_lock_file_v2() -> None:
 
 
 def test_lock_file_v2b() -> None:
-    with open("tests/resources/poetry_v2b.lock", "r", encoding="utf-8") as lock_file:
+    with open("tests/resources/poetry_v2b.lock", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         assert clean_dependencies(
             collect_dependencies(lock_toml, ["toml"], always(True))
@@ -86,7 +86,7 @@ def test_lock_file_v2b() -> None:
         }
 
 
-def test_pybluez_git_reference():
+def test_pybluez_git_reference() -> None:
     lock_toml = read_toml("tests/resources/pybluez_git.lock")
     project_toml = read_toml("tests/resources/pybluez_git.toml")
     root_dependencies = project_root_dependencies(project_toml)
@@ -110,11 +110,11 @@ def test_project_root_dependencies() -> None:
     assert "python" not in root_deps, "Should ignore python"
 
 
-def test_clean_dependencies_should_ignore_extra_via_dependency():
+def test_clean_dependencies_should_ignore_extra_via_dependency() -> None:
     """
     The lock contains a reference to a dependency with an extra in it, but also
-    the main package without extra reference. This should end up with the root dependency without the extra
-    on it.
+    the main package without extra reference. This should end up with
+    the root dependency without the extra on it.
     """
     lock_toml = read_toml("tests/resources/extras_example.lock")
 
@@ -125,11 +125,27 @@ def test_clean_dependencies_should_ignore_extra_via_dependency():
 
 
 def test_issue_36_lock() -> None:
-    """If the dependency information contains more markers for different versions, we incorrectly merge the configuration"""
-    with open("tests/resources/issue_36.lock", "r", encoding="utf-8") as lock_file:
+    """
+    If the dependency information contains more markers for different versions,
+      we incorrectly merge the configuration
+    """
+    with open("tests/resources/issue_36.lock", encoding="utf-8") as lock_file:
         lock_toml = toml.load(lock_file)
         collected_deps = collect_dependencies(
             lock_toml, ["aioboto3", "docker", "requests"], always(True)
         )
         cleaned_deps = clean_dependencies(collected_deps)
         assert cleaned_deps["urllib3"]["version"] == "1.26.18"
+
+
+def test_issue_42_lock() -> None:
+    """Cyclic dependencies in lock file:
+    * pkg_B => pkg_C => pkg_B
+    * pkg_D => pkg_C => pkg_D
+    * pkg_C => pkg_B => pkg_C
+    """
+    with open("tests/resources/circular.lock", encoding="utf-8") as lock_file:
+        lock_toml = toml.load(lock_file)
+        collected_deps = collect_dependencies(lock_toml, ["b", "d"], always(True))
+        cleaned_deps = clean_dependencies(collected_deps)
+        assert cleaned_deps["b"]["version"] == "0.0.1"
