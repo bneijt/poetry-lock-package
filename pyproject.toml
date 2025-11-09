@@ -15,6 +15,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.9.0"
 toml = "^0.10.1"
+jmespath = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"

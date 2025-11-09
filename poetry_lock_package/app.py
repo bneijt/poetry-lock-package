@@ -15,6 +15,7 @@ from poetry_lock_package.util import (
     changed_directory,
     create_and_write,
     del_keys,
+    first_match_from,
     normalized_package_name,
     read_toml,
 )
@@ -218,6 +219,25 @@ def run(
     add_root: bool,
 ) -> None:
     parent_project = read_toml("pyproject.toml")
+    # Compatibility with poetry <= 1.8 we take tool.poetry and project
+    parent_project_attributes: dict[str, Any] = {
+        key: first_match_from([f"tool.poetry.{key}", f"project.{key}"], parent_project)
+        for key in [
+            "name",
+            "version",
+            "authors",
+            "description",
+            "classifiers",
+            "homepage",
+            "keywords",
+            "license",
+            "maintainers",
+            "repository",
+        ]
+    }
+    parent_project_name = first_match_from(
+        ["tool.poetry.name", "project.name"], parent_project
+    )
     lock = read_toml("poetry.lock")
 
     root_dependencies = project_root_dependencies(parent_project)
@@ -226,29 +246,27 @@ def run(
     )
     dependencies["python"] = parent_project["tool"]["poetry"]["dependencies"]["python"]
     if add_root:
-        dependencies[
-            normalized_package_name(parent_project["tool"]["poetry"]["name"])
-        ] = parent_project["tool"]["poetry"]["version"]
+        dependencies[normalized_package_name(parent_project_attributes["name"])] = (
+            parent_project_attributes["version"]
+        )
 
     lock_project = {
         "tool": {
             "poetry": {
-                "name": lock_package_name(parent_project["tool"]["poetry"]["name"]),
+                "name": lock_package_name(parent_project_name),
                 "description": (
-                    parent_project["tool"]["poetry"].get(
-                        "description", parent_project["tool"]["poetry"]["name"]
-                    )
+                    parent_project_attributes.get("description", parent_project_name)
                     + " lock package"
                 ).strip(),
-                "authors": parent_project["tool"]["poetry"]["authors"],
+                "authors": parent_project_attributes["authors"],
                 "dependencies": dependencies,
-                "version": parent_project["tool"]["poetry"]["version"],
-                "classifiers": parent_project["tool"]["poetry"].get("classifiers"),
-                "homepage": parent_project["tool"]["poetry"].get("homepage"),
-                "keywords": parent_project["tool"]["poetry"].get("keywords"),
-                "license": parent_project["tool"]["poetry"].get("license"),
-                "maintainers": parent_project["tool"]["poetry"].get("maintainers"),
-                "repository": parent_project["tool"]["poetry"].get("repository"),
+                "version": parent_project_attributes["version"],
+                "classifiers": parent_project_attributes.get("classifiers"),
+                "homepage": parent_project_attributes.get("homepage"),
+                "keywords": parent_project_attributes.get("keywords"),
+                "license": parent_project_attributes.get("license"),
+                "maintainers": parent_project_attributes.get("maintainers"),
+                "repository": parent_project_attributes.get("repository"),
             }
         },
         "build-system": parent_project["build-system"],

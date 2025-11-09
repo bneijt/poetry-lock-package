@@ -1,9 +1,10 @@
 import os
 import re
-from collections.abc import Iterator, MutableMapping
+from collections.abc import Iterator, Mapping, MutableMapping, Sequence
 from contextlib import contextmanager
 from typing import Any, Callable
 
+import jmespath
 import toml
 
 
@@ -42,6 +43,14 @@ def create_and_write(path: str, contents: str) -> None:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as output_file:
             output_file.write(contents)
+
+
+def first_match_from(paths: Sequence[str], haystack: Mapping[str, Any]) -> Any:
+    for path in paths:
+        value = jmespath.search(path, haystack)
+        if value is not None:
+            return value
+    raise ValueError(f"Could not find config for {paths}")
 
 
 @contextmanager
